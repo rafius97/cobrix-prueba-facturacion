@@ -24,7 +24,7 @@ import {
 	isResidualAmount,
 } from '../../src/cobrix/domain/money.ts'
 
-describe('Domain: Customer Identification Normalization', () => {
+describe('Dominio: Normalización de identificación de clientes', () => {
 	it('normaliza Elena Ruiz (09000123 -> 9000123) sin prefijo y como persona natural', () => {
 		const result = normalizeIdentification('09000123')
 		assert.notEqual(result, null)
@@ -113,7 +113,7 @@ describe('Domain: Customer Identification Normalization', () => {
 	})
 })
 
-describe('Domain: Monetary representation and validation', () => {
+describe('Dominio: Representación y validación monetaria', () => {
 	it('convierte dólares a centavos enteros con redondeo seguro', () => {
 		assert.equal(dollarsToCents(25), 2500)
 		assert.equal(dollarsToCents(1235), 123500)
@@ -163,7 +163,7 @@ describe('Domain: Monetary representation and validation', () => {
 	})
 })
 
-describe('Domain: Installment schedule and period parsing', () => {
+describe('Dominio: Cronograma de cuotas y análisis de períodos', () => {
 	it('extrae período y vencimiento desde detalle_deuda («PLAN - 2026 Agosto»)', () => {
 		const schedule = parseDebtDetail(['PLAN15MB25 - 2026 Agosto'], 0)
 		assert.notEqual(schedule, null)
