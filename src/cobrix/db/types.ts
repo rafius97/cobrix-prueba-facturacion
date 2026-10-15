@@ -193,3 +193,20 @@ export interface CreateCustomerEventInput {
 	readonly description: string
 	readonly metadataJson?: string
 }
+
+export interface InvoiceAggregateMetrics {
+	readonly openInvoicesCount: number
+	readonly paidInvoicesCount: number
+	readonly totalOpenBalanceCents: number
+	readonly oldestOpenDueDate: string | null
+}
+
+export interface CustomerMetricsSummary {
+	readonly customerId: string
+	readonly name: string
+	readonly totalContractsCount: number
+	readonly openInvoicesCount: number
+	readonly paidInvoicesCount: number
+	readonly openBalanceCents: number
+	readonly oldestOpenDueDate: string | null
+}

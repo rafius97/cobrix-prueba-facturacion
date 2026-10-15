@@ -17,7 +17,9 @@ import type {
 	Customer,
 	CustomerEvent,
 	CustomerEventType,
+	CustomerMetricsSummary,
 	Invoice,
+	InvoiceAggregateMetrics,
 	InvoiceStatus,
 	MarkInvoicePaidInput,
 	SyncRun,
@@ -240,6 +242,27 @@ function mapCustomerEvent(row: Record<string, SQLOutputValue>): CustomerEvent {
 	}
 }
 
+function mapInvoiceAggregateMetrics(row: Record<string, SQLOutputValue>): InvoiceAggregateMetrics {
+	return {
+		openInvoicesCount: parseNumber(row, 'open_invoices_count'),
+		paidInvoicesCount: parseNumber(row, 'paid_invoices_count'),
+		totalOpenBalanceCents: parseNumber(row, 'total_open_balance_cents'),
+		oldestOpenDueDate: parseOptionalString(row, 'oldest_open_due_date'),
+	}
+}
+
+function mapCustomerMetrics(row: Record<string, SQLOutputValue>): CustomerMetricsSummary {
+	return {
+		customerId: parseString(row, 'customer_id'),
+		name: parseString(row, 'customer_name'),
+		totalContractsCount: parseNumber(row, 'total_contracts_count'),
+		openInvoicesCount: parseNumber(row, 'open_invoices_count'),
+		paidInvoicesCount: parseNumber(row, 'paid_invoices_count'),
+		openBalanceCents: parseNumber(row, 'open_balance_cents'),
+		oldestOpenDueDate: parseOptionalString(row, 'oldest_open_due_date'),
+	}
+}
+
 // ============================================================================
 // Repositories
 // ============================================================================
@@ -336,6 +359,76 @@ export const customerRepository = {
 		if (created === null) throw new Error(`Failed to retrieve newly created customer: ${input.id}`)
 		return created
 	},
+
+	count(db: DatabaseSync): number {
+		const row = db.prepare('SELECT COUNT(*) AS count FROM customer').get()
+		if (row === undefined) return 0
+		return parseNumber(row, 'count')
+	},
+
+	listCustomerMetrics(db: DatabaseSync): CustomerMetricsSummary[] {
+		const rows = db.prepare(`
+			SELECT
+				c.id AS customer_id,
+				c.name AS customer_name,
+				COALESCE(ct.contracts_count, 0) AS total_contracts_count,
+				COALESCE(inv.open_invoices_count, 0) AS open_invoices_count,
+				COALESCE(inv.paid_invoices_count, 0) AS paid_invoices_count,
+				COALESCE(inv.open_balance_cents, 0) AS open_balance_cents,
+				inv.oldest_open_due_date AS oldest_open_due_date
+			FROM customer c
+			LEFT JOIN (
+				SELECT customer_id, COUNT(*) AS contracts_count
+				FROM contract
+				GROUP BY customer_id
+			) ct ON ct.customer_id = c.id
+			LEFT JOIN (
+				SELECT
+					customer_id,
+					COUNT(CASE WHEN status = 'OPEN' THEN 1 END) AS open_invoices_count,
+					COUNT(CASE WHEN status = 'PAID' THEN 1 END) AS paid_invoices_count,
+					COALESCE(SUM(CASE WHEN status = 'OPEN' THEN balance_cents ELSE 0 END), 0) AS open_balance_cents,
+					MIN(CASE WHEN status = 'OPEN' THEN due_date END) AS oldest_open_due_date
+				FROM invoice
+				GROUP BY customer_id
+			) inv ON inv.customer_id = c.id
+			ORDER BY c.name ASC, c.id ASC
+		`).all()
+		return rows.map(mapCustomerMetrics)
+	},
+
+	getCustomerMetricsById(db: DatabaseSync, customerId: string): CustomerMetricsSummary | null {
+		const row = db.prepare(`
+			SELECT
+				c.id AS customer_id,
+				c.name AS customer_name,
+				COALESCE(ct.contracts_count, 0) AS total_contracts_count,
+				COALESCE(inv.open_invoices_count, 0) AS open_invoices_count,
+				COALESCE(inv.paid_invoices_count, 0) AS paid_invoices_count,
+				COALESCE(inv.open_balance_cents, 0) AS open_balance_cents,
+				inv.oldest_open_due_date AS oldest_open_due_date
+			FROM customer c
+			LEFT JOIN (
+				SELECT customer_id, COUNT(*) AS contracts_count
+				FROM contract
+				WHERE customer_id = ?
+				GROUP BY customer_id
+			) ct ON ct.customer_id = c.id
+			LEFT JOIN (
+				SELECT
+					customer_id,
+					COUNT(CASE WHEN status = 'OPEN' THEN 1 END) AS open_invoices_count,
+					COUNT(CASE WHEN status = 'PAID' THEN 1 END) AS paid_invoices_count,
+					COALESCE(SUM(CASE WHEN status = 'OPEN' THEN balance_cents ELSE 0 END), 0) AS open_balance_cents,
+					MIN(CASE WHEN status = 'OPEN' THEN due_date END) AS oldest_open_due_date
+				FROM invoice
+				WHERE customer_id = ?
+				GROUP BY customer_id
+			) inv ON inv.customer_id = c.id
+			WHERE c.id = ?
+		`).get(customerId, customerId, customerId)
+		return row !== undefined ? mapCustomerMetrics(row) : null
+	},
 }
 
 export const contractRepository = {
@@ -385,6 +478,12 @@ export const contractRepository = {
 		if (result === null) throw new Error(`Failed to retrieve contract ${input.id}`)
 		return result
 	},
+
+	count(db: DatabaseSync): number {
+		const row = db.prepare('SELECT COUNT(*) AS count FROM contract').get()
+		if (row === undefined) return 0
+		return parseNumber(row, 'count')
+	},
 }
 
 export const invoiceRepository = {
@@ -401,6 +500,28 @@ export const invoiceRepository = {
 	listOpen(db: DatabaseSync): Invoice[] {
 		const rows = db.prepare('SELECT * FROM invoice WHERE status = ? ORDER BY due_date ASC').all('OPEN')
 		return rows.map(mapInvoice)
+	},
+
+	getAggregateMetrics(db: DatabaseSync): InvoiceAggregateMetrics {
+		const row = db.prepare(`
+			SELECT
+				COUNT(CASE WHEN status = 'OPEN' THEN 1 END) AS open_invoices_count,
+				COUNT(CASE WHEN status = 'PAID' THEN 1 END) AS paid_invoices_count,
+				COALESCE(SUM(CASE WHEN status = 'OPEN' THEN balance_cents ELSE 0 END), 0) AS total_open_balance_cents,
+				MIN(CASE WHEN status = 'OPEN' THEN due_date END) AS oldest_open_due_date
+			FROM invoice
+		`).get()
+
+		if (row === undefined) {
+			return {
+				openInvoicesCount: 0,
+				paidInvoicesCount: 0,
+				totalOpenBalanceCents: 0,
+				oldestOpenDueDate: null,
+			}
+		}
+
+		return mapInvoiceAggregateMetrics(row)
 	},
 
 	create(db: DatabaseSync, input: CreateInvoiceInput): Invoice {
@@ -472,7 +593,11 @@ export const syncRunRepository = {
 		return row !== undefined ? mapSyncRun(row) : null
 	},
 
-	list(db: DatabaseSync): SyncRun[] {
+	list(db: DatabaseSync, limit?: number): SyncRun[] {
+		if (limit !== undefined && limit > 0) {
+			const rows = db.prepare('SELECT * FROM sync_run ORDER BY started_at DESC LIMIT ?').all(limit)
+			return rows.map(mapSyncRun)
+		}
 		const rows = db.prepare('SELECT * FROM sync_run ORDER BY started_at DESC').all()
 		return rows.map(mapSyncRun)
 	},

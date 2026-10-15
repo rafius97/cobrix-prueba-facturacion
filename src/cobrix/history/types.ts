@@ -3,11 +3,27 @@
  * Estrictamente tipado sin `any` ni `unknown`.
  */
 
-import type { SyncRun, SyncRunStatus, SyncRunType } from '../db/types.ts'
+import type {
+	CustomerMetricsSummary,
+	InvoiceAggregateMetrics,
+	SyncRun,
+	SyncRunDetail,
+	SyncRunStatus,
+	SyncRunType,
+} from '../db/types.ts'
 import type { ImportRunSummary } from '../sync/types.ts'
 import type { PaymentSyncSummary } from '../sync/payment-types.ts'
 
-export type { ImportRunSummary, PaymentSyncSummary, SyncRun, SyncRunStatus, SyncRunType }
+export type {
+	CustomerMetricsSummary,
+	ImportRunSummary,
+	InvoiceAggregateMetrics,
+	PaymentSyncSummary,
+	SyncRun,
+	SyncRunDetail,
+	SyncRunStatus,
+	SyncRunType,
+}
 
 /**
  * Entrada cruda representativa de un registro de corrida, antes de validar su tipo y resumen.
@@ -70,3 +86,16 @@ export interface TypedPaymentSyncRun {
  * Unión discriminada para una corrida de sincronización con resumen validado.
  */
 export type TypedSyncRun = TypedImportSyncRun | TypedPaymentSyncRun
+
+/**
+ * Métricas agregadas globales del sistema Cobrix.
+ */
+export interface GlobalSystemMetrics {
+	readonly totalCustomersCount: number
+	readonly totalContractsCount: number
+	readonly openInvoicesCount: number
+	readonly paidInvoicesCount: number
+	readonly totalOpenBalanceCents: number
+	readonly oldestOpenDueDate: string | null
+	readonly recentRuns: readonly TypedSyncRun[]
+}
