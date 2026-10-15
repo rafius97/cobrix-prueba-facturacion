@@ -16,7 +16,7 @@ import {
 	syncRunRepository,
 } from '../../src/cobrix/db/repositories.ts'
 
-describe('Persistencia Cobrix: Inicialización y aislamiento de la base de datos', () => {
+describe('Persistencia Cobrix: Inicialización y aislamiento', () => {
 	it('inicializa correctamente una base de datos vacía con configuración por defecto y llaves foráneas', () => {
 		const db = createCobrixDatabase(':memory:')
 		try {
@@ -60,7 +60,7 @@ describe('Persistencia Cobrix: Inicialización y aislamiento de la base de datos
 	})
 })
 
-describe('Persistencia Cobrix: Entidades CRUD e integridad relacional', () => {
+describe('Persistencia Cobrix: Entidades e integridad relacional', () => {
 	it('creación y consulta de clientes, contratos y facturas', () => {
 		const db = createCobrixDatabase(':memory:')
 		try {
@@ -248,7 +248,7 @@ describe('Persistencia Cobrix: Entidades CRUD e integridad relacional', () => {
 	})
 })
 
-describe('Persistencia Cobrix: Transacciones y registros de auditoría', () => {
+describe('Persistencia Cobrix: Transacciones y auditoría', () => {
 	it('rollback revierte los cambios cuando una operación transaccional falla', () => {
 		const db = createCobrixDatabase(':memory:')
 		try {

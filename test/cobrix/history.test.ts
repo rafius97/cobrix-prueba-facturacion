@@ -1,6 +1,6 @@
 /**
  * Pruebas unitarias para el modelo y parser tipado del historial de sincronización.
- * Fase 6.1: Validación estricta de ImportRunSummary y PaymentSyncSummary.
+ * Historial: Validación estricta de ImportRunSummary y PaymentSyncSummary.
  * Estrictamente tipado sin `any` ni `unknown`. Sin aserciones de tipo inseguras (`as`).
  */
 
@@ -122,7 +122,7 @@ function expectHistoryParseError(
 // Casos de prueba
 // ============================================================================
 
-describe('Fase 6.1 — Parser tipado del historial de sincronización', () => {
+describe('Historial: Parsing y validación de resúmenes tipados', () => {
 	describe('Casos válidos de importación (IMPORT)', () => {
 		it('parsea correctamente un ImportRunSummary válido desde JSON', () => {
 			const json = JSON.stringify(validImportSummary)

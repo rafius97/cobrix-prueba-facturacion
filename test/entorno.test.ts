@@ -15,7 +15,7 @@ import { createApp } from '../src/web/app.ts'
 
 process.env.SANDBOX_TODAY = '2026-10-13'
 
-describe('entorno de la prueba', () => {
+describe('Entorno de la prueba: API, Swagger y panel', () => {
 	let dir: string
 	let api: BillingApiServer
 	let base: string

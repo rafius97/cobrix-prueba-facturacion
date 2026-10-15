@@ -267,7 +267,7 @@ function getAllInvoices(db: DatabaseSync): Invoice[] {
 // Grupo 1: Conciliación de pagos
 // ============================================================================
 
-describe('PaymentSyncService: Conciliación de Pagos', () => {
+describe('PaymentSyncService: Conciliación de pagos', () => {
 	it('una cuota con saldo cero y evidencia positiva de pago se marca como pagada', async () => {
 		const db = createCobrixDatabase(':memory:')
 		seedCustomer(db)
@@ -951,7 +951,7 @@ describe('PaymentSyncService: Simulación', () => {
 // Grupo 4: Atomicidad y fallos
 // ============================================================================
 
-describe('PaymentSyncService: Atomicidad y Fallos', () => {
+describe('PaymentSyncService: Atomicidad y fallos', () => {
 	it('revierte todas las mutaciones cuando ocurre un fallo de persistencia y registra FAILED', async () => {
 		const db = createCobrixDatabase(':memory:')
 		seedCustomer(db)
@@ -1130,7 +1130,7 @@ describe('PaymentSyncService: Atomicidad y Fallos', () => {
 // Grupo 5: Aceptación End-to-End (§5 de ENUNCIADO.md)
 // ============================================================================
 
-describe('PaymentSyncService: Criterios de Aceptación End-to-End', () => {
+describe('PaymentSyncService: Criterios de aceptación end-to-end', () => {
 	let tempDir: string
 	let billingServer: BillingApiServer
 	let baseUrl: string

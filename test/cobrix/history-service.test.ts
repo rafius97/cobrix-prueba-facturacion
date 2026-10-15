@@ -1,6 +1,6 @@
 /**
  * Pruebas unitarias y de integración para HistoryService y consultas de métricas agregadas.
- * Fase 6.2: Historial tipado, métricas globales y métricas por cliente en SQLite.
+ * Historial tipado, métricas globales y métricas por cliente en SQLite.
  * Estrictamente tipado sin `any` ni `unknown`. Sin aserciones de tipo inseguras (`as`).
  */
 
@@ -76,7 +76,7 @@ const samplePaymentSummary: PaymentSyncSummary = {
 // Suite de pruebas de HistoryService
 // ============================================================================
 
-describe('Fase 6.2 — HistoryService y Métricas Agregadas', () => {
+describe('Historial: Consultas de sincronización', () => {
 	let db: DatabaseSync
 	let service: HistoryService
 
@@ -84,8 +84,6 @@ describe('Fase 6.2 — HistoryService y Métricas Agregadas', () => {
 		db = createCobrixDatabase(':memory:')
 		service = new HistoryService(db)
 	})
-
-	describe('Historial tipado de sincronizaciones', () => {
 		it('lista corridas de sincronización ordenadas descendentemente por started_at', () => {
 			syncRunRepository.create(db, {
 				id: 'run-1',
@@ -297,6 +295,15 @@ describe('Fase 6.2 — HistoryService y Métricas Agregadas', () => {
 			const details = service.listRunDetails('run-empty-details')
 			assert.deepStrictEqual(details, [])
 		})
+})
+
+describe('Métricas del sistema: Agregados globales y por cliente', () => {
+	let db: DatabaseSync
+	let service: HistoryService
+
+	beforeEach(() => {
+		db = createCobrixDatabase(':memory:')
+		service = new HistoryService(db)
 	})
 
 	describe('Métricas globales del sistema', () => {

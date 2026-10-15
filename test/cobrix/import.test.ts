@@ -125,7 +125,7 @@ function createMockPendingRow(overrides?: Partial<Record<string, JsonValue>>): R
 // Suites de Pruebas
 // ============================================================================
 
-describe('ImportService: Criterios de Aceptación con API Simulada', () => {
+describe('ImportService: Criterios de aceptación e idempotencia', () => {
 	let tempDir: string
 	let billingServer: BillingApiServer
 	let baseUrl: string
@@ -274,7 +274,7 @@ describe('ImportService: Criterios de Aceptación con API Simulada', () => {
 	})
 })
 
-describe('ImportService: Reglas de Exclusión con Respuestas Controladas', () => {
+describe('ImportService: Reglas de exclusión', () => {
 	it('excluye contrato por estado no importable (EXCLUDED_STATUS)', async () => {
 		const db = createCobrixDatabase(':memory:')
 		const fetchFn = createMockFetch((url) => {
@@ -509,7 +509,7 @@ describe('ImportService: Reglas de Exclusión con Respuestas Controladas', () =>
 	})
 })
 
-describe('ImportService: Manejo de Límites de Corrida y Freno Secuencial', () => {
+describe('ImportService: Límites de corrida', () => {
 	it('frena secuencialmente ante runInvoiceLimit', async () => {
 		const db = createCobrixDatabase(':memory:')
 		configRepository.update(db, { runInvoiceLimit: 2 })
@@ -612,7 +612,7 @@ describe('ImportService: Manejo de Límites de Corrida y Freno Secuencial', () =
 	})
 })
 
-describe('ImportService: Atomicidad, Errores y Recuperación', () => {
+describe('ImportService: Atomicidad y recuperación', () => {
 	it('rollback completo revierte todas las mutaciones cuando falla la persistencia', async () => {
 		const db = createCobrixDatabase(':memory:')
 

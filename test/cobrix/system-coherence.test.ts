@@ -1,5 +1,5 @@
 /**
- * Subfase 6.3 — Pruebas integrales de coherencia del sistema Cobrix.
+ * Sistema Cobrix: Coherencia integral del ciclo de vida.
  * Valida la coherencia de punta a punta entre importación, simulación,
  * sincronización de pagos, idempotencia, auditoría, historial y métricas agregadas.
  *
@@ -71,7 +71,7 @@ function getAllInvoices(db: DatabaseSync): Invoice[] {
 // Suite de pruebas integrales de coherencia
 // ============================================================================
 
-describe('Subfase 6.3 — Pruebas integrales de coherencia del sistema Cobrix', () => {
+describe('Sistema Cobrix: Coherencia integral del ciclo de vida', () => {
 	let tempDir: string | undefined
 	let billingServer: BillingApiServer | undefined
 	let baseUrl: string = ''

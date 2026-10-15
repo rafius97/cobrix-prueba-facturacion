@@ -611,7 +611,7 @@ describe('Cliente API: Manejo de errores y reintentos', () => {
 	})
 })
 
-describe('Cliente API: Validación estructural de respuestas', () => {
+describe('Cliente API: Validación de respuestas', () => {
 	it('validación de una respuesta JSON malformada', async () => {
 		const client = new BillingApiClient({
 			baseUrl: 'http://api.test',
@@ -814,7 +814,7 @@ describe('Cliente API: Validación estructural de respuestas', () => {
 	})
 })
 
-describe('Cliente API: Normalización de baseUrl', () => {
+describe('Cliente API: Normalización de URL', () => {
 	it('normaliza baseUrl tanto con prefijo /api/v1 como sin él sin duplicar rutas', async () => {
 		const capturedUrls: string[] = []
 
