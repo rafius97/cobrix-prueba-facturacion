@@ -11,7 +11,15 @@ import type {
 	CustomerListItemDto,
 	CustomerListResponseDto,
 	CustomerMetricsDto,
+	ImportRunSummaryDto,
 	InvoiceItemDto,
+	PaymentSyncSummaryDto,
+	SyncRunItemDto,
+	SyncRunListResponseDto,
+	SyncRunStatusDto,
+	SyncRunSummaryDto,
+	SyncRunTriggerRequestDto,
+	SyncRunTypeDto,
 } from '../../shared/api-types'
 
 // ============================================================================
@@ -262,4 +270,168 @@ export async function fetchCustomerDossier(customerId: string): Promise<Customer
 	const rawText = await response.text()
 	const parsed: JsonValue = JSON.parse(rawText)
 	return parseCustomerDossierResponse(parsed)
+}
+
+// ============================================================================
+// Validadores y parseadores tipados de sincronización
+// ============================================================================
+
+function parseImportRunSummary(val: JsonValue): ImportRunSummaryDto {
+	if (!isJsonObject(val)) throw new Error('Resumen de importación inválido')
+	return {
+		type: 'IMPORT',
+		isSimulation: val.isSimulation === true,
+		durationMs: typeof val.durationMs === 'number' ? val.durationMs : 0,
+		totalContractsInspected: typeof val.totalContractsInspected === 'number' ? val.totalContractsInspected : 0,
+		totalInstallmentsEvaluated: typeof val.totalInstallmentsEvaluated === 'number' ? val.totalInstallmentsEvaluated : 0,
+		importedInvoicesCount: typeof val.importedInvoicesCount === 'number' ? val.importedInvoicesCount : 0,
+		importedAmountCents: typeof val.importedAmountCents === 'number' ? val.importedAmountCents : 0,
+		newCustomersCount: typeof val.newCustomersCount === 'number' ? val.newCustomersCount : 0,
+		alreadyImportedCount: typeof val.alreadyImportedCount === 'number' ? val.alreadyImportedCount : 0,
+		excludedByStatusCount: typeof val.excludedByStatusCount === 'number' ? val.excludedByStatusCount : 0,
+		excludedByDocumentTypeCount: typeof val.excludedByDocumentTypeCount === 'number' ? val.excludedByDocumentTypeCount : 0,
+		outOfWindowCount: typeof val.outOfWindowCount === 'number' ? val.outOfWindowCount : 0,
+		excludedByMaxInstallmentsCount: typeof val.excludedByMaxInstallmentsCount === 'number' ? val.excludedByMaxInstallmentsCount : 0,
+		limitReachedCount: typeof val.limitReachedCount === 'number' ? val.limitReachedCount : 0,
+		inconsistentCurrencyCount: typeof val.inconsistentCurrencyCount === 'number' ? val.inconsistentCurrencyCount : 0,
+		residualBalanceCount: typeof val.residualBalanceCount === 'number' ? val.residualBalanceCount : 0,
+		noDebtCount: typeof val.noDebtCount === 'number' ? val.noDebtCount : 0,
+		invalidIdentificationCount: typeof val.invalidIdentificationCount === 'number' ? val.invalidIdentificationCount : 0,
+		invalidDataCount: typeof val.invalidDataCount === 'number' ? val.invalidDataCount : 0,
+	}
+}
+
+function parsePaymentSyncSummary(val: JsonValue): PaymentSyncSummaryDto {
+	if (!isJsonObject(val)) throw new Error('Resumen de conciliación de pagos inválido')
+	return {
+		type: 'PAYMENT_UPDATE',
+		isSimulation: val.isSimulation === true,
+		durationMs: typeof val.durationMs === 'number' ? val.durationMs : 0,
+		totalInvoicesInspected: typeof val.totalInvoicesInspected === 'number' ? val.totalInvoicesInspected : 0,
+		totalContractsInspected: typeof val.totalContractsInspected === 'number' ? val.totalContractsInspected : 0,
+		markedPaidCount: typeof val.markedPaidCount === 'number' ? val.markedPaidCount : 0,
+		markedPaidAmountCents: typeof val.markedPaidAmountCents === 'number' ? val.markedPaidAmountCents : 0,
+		partialPaymentsCount: typeof val.partialPaymentsCount === 'number' ? val.partialPaymentsCount : 0,
+		partialPaymentsAmountCents: typeof val.partialPaymentsAmountCents === 'number' ? val.partialPaymentsAmountCents : 0,
+		stillOpenCount: typeof val.stillOpenCount === 'number' ? val.stillOpenCount : 0,
+		stillOpenBalanceCents: typeof val.stillOpenBalanceCents === 'number' ? val.stillOpenBalanceCents : 0,
+		exemptionCount: typeof val.exemptionCount === 'number' ? val.exemptionCount : 0,
+		noEvidenceCount: typeof val.noEvidenceCount === 'number' ? val.noEvidenceCount : 0,
+		contradictoryDataCount: typeof val.contradictoryDataCount === 'number' ? val.contradictoryDataCount : 0,
+		invalidDataCount: typeof val.invalidDataCount === 'number' ? val.invalidDataCount : 0,
+	}
+}
+
+export function parseSyncRunItem(val: JsonValue): SyncRunItemDto {
+	if (!isJsonObject(val)) throw new Error('Corrida de sincronización inválida')
+
+	const rawType = val.type
+	const type: SyncRunTypeDto = rawType === 'PAYMENT_UPDATE' ? 'PAYMENT_UPDATE' : 'IMPORT'
+	const rawStatus = val.status
+	const status: SyncRunStatusDto = rawStatus === 'FAILED' ? 'FAILED' : 'COMPLETED'
+
+	let summary: SyncRunSummaryDto | null = null
+	if (isJsonObject(val.summary)) {
+		if (val.summary.type === 'PAYMENT_UPDATE') {
+			summary = parsePaymentSyncSummary(val.summary)
+		} else {
+			summary = parseImportRunSummary(val.summary)
+		}
+	}
+
+	return {
+		id: typeof val.id === 'string' ? val.id : '',
+		type,
+		isSimulation: val.isSimulation === true,
+		status,
+		startedAt: typeof val.startedAt === 'string' ? val.startedAt : '',
+		finishedAt: typeof val.finishedAt === 'string' ? val.finishedAt : '',
+		errorMessage: typeof val.errorMessage === 'string' ? val.errorMessage : null,
+		summary,
+	}
+}
+
+function parseSyncRunListResponse(val: JsonValue): SyncRunListResponseDto {
+	if (!isJsonObject(val)) throw new Error('Respuesta de historial de sincronización inválida')
+	const rawRuns = Array.isArray(val.runs) ? val.runs : []
+	const runs = rawRuns.map(r => parseSyncRunItem(r))
+	return {
+		runs,
+		totalCount: typeof val.totalCount === 'number' ? val.totalCount : runs.length,
+	}
+}
+
+// ============================================================================
+// Funciones públicas de sincronización
+// ============================================================================
+
+/**
+ * Consulta el historial de corridas de sincronización registradas.
+ */
+export async function fetchSyncRuns(limit: number = 20): Promise<SyncRunListResponseDto> {
+	const safeLimit = Math.max(1, Math.min(limit, 100))
+	const url = `/api/sync/runs?limit=${safeLimit}`
+
+	const response = await fetch(url, {
+		method: 'GET',
+		headers: {
+			Accept: 'application/json',
+		},
+	})
+
+	if (!response.ok) {
+		throw await parseErrorResponse(response)
+	}
+
+	const rawText = await response.text()
+	const parsed: JsonValue = JSON.parse(rawText)
+	return parseSyncRunListResponse(parsed)
+}
+
+/**
+ * Dispara una corrida de importación de facturas y deudas (o su simulación).
+ */
+export async function triggerImportSync(isSimulation: boolean): Promise<SyncRunItemDto> {
+	const requestBody: SyncRunTriggerRequestDto = { isSimulation }
+
+	const response = await fetch('/api/sync/import', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Accept: 'application/json',
+		},
+		body: JSON.stringify(requestBody),
+	})
+
+	if (!response.ok) {
+		throw await parseErrorResponse(response)
+	}
+
+	const rawText = await response.text()
+	const parsed: JsonValue = JSON.parse(rawText)
+	return parseSyncRunItem(parsed)
+}
+
+/**
+ * Dispara una corrida de actualización y conciliación de facturas pagadas (o su simulación).
+ */
+export async function triggerPaymentSync(isSimulation: boolean): Promise<SyncRunItemDto> {
+	const requestBody: SyncRunTriggerRequestDto = { isSimulation }
+
+	const response = await fetch('/api/sync/payments', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Accept: 'application/json',
+		},
+		body: JSON.stringify(requestBody),
+	})
+
+	if (!response.ok) {
+		throw await parseErrorResponse(response)
+	}
+
+	const rawText = await response.text()
+	const parsed: JsonValue = JSON.parse(rawText)
+	return parseSyncRunItem(parsed)
 }

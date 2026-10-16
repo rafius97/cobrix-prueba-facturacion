@@ -7,6 +7,7 @@ import { CustomerDossierPage } from './pages/CustomerDossierPage'
 import { CustomersPage } from './pages/CustomersPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
+import { SyncPage } from './pages/SyncPage'
 
 export function App(): React.JSX.Element {
 	return (
@@ -16,14 +17,15 @@ export function App(): React.JSX.Element {
 					<Route index element={<DashboardPage />} />
 					<Route path="clientes" element={<CustomersPage />} />
 					<Route path="clientes/:id" element={<CustomerDossierPage />} />
+					<Route path="sincronizacion" element={<SyncPage />} />
 					<Route
-						path="sincronizacion"
+						path="sincronizacion/corridas/:id"
 						element={
 							<PlaceholderPage
-								title="Sincronización de Facturación"
+								title="Detalle de Corrida"
 								section="§3.2 a §3.4"
-								phase="Subfase 7.2"
-								description="Ejecución y simulación de importación de facturas y conciliación de pagos con el ISP."
+								phase="Subfase 7.2.3.c"
+								description="Auditoría detallada, métricas e historial de registros evaluados durante la sincronización."
 							/>
 						}
 					/>
