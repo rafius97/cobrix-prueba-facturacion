@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
 
 import { AppLayout } from './components/layout/AppLayout'
 import { AssignmentPage } from './pages/AssignmentPage'
+import { CustomersPage } from './pages/CustomersPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 
@@ -12,17 +13,7 @@ export function App(): React.JSX.Element {
 			<Routes>
 				<Route path="/" element={<AppLayout />}>
 					<Route index element={<DashboardPage />} />
-					<Route
-						path="clientes"
-						element={
-							<PlaceholderPage
-								title="Clientes y Contratos"
-								section="§3.5"
-								phase="Subfase 7.2"
-								description="Directorio de clientes agrupados por cédula/RIF con métricas de deuda y contratos."
-							/>
-						}
-					/>
+					<Route path="clientes" element={<CustomersPage />} />
 					<Route
 						path="clientes/:id"
 						element={
