@@ -69,15 +69,78 @@ export function CustomersPage(): React.JSX.Element {
 
 	React.useEffect(() => {
 		void loadCustomers('')
+		return () => {
+			// Invalida solicitudes en vuelo al desmontar el componente
+			activeRequestIdRef.current++
+		}
 	}, [loadCustomers])
+
+	function handleInputChange(e: React.ChangeEvent<HTMLInputElement>): void {
+		const nextValue = e.target.value
+		setSearchInput(nextValue)
+		const trimmed = nextValue.trim()
+
+		// 1. Si el término normalizado ya coincide con la búsqueda activa y los resultados de ella ya están visibles y sin error:
+		if (trimmed === activeSearch && data !== null && error === null) {
+			// Si había una petición intermedia en vuelo (ej. A -> B -> A),
+			// invalidamos la petición de B para que su respuesta tardía no sobrescriba a A.
+			if (isLoading) {
+				activeRequestIdRef.current++
+				setIsLoading(false)
+			}
+			lastAttemptedQueryRef.current = trimmed
+			return
+		}
+
+		// 2. Si ya hay una petición en vuelo para exactamente este mismo término normalizado:
+		if (trimmed === lastAttemptedQueryRef.current && isLoading) {
+			return
+		}
+
+		// 3. De lo contrario, iniciar la búsqueda del nuevo término (o directorio completo si trimmed === '')
+		void loadCustomers(trimmed)
+	}
 
 	function handleSearchSubmit(e: React.FormEvent<HTMLFormElement>): void {
 		e.preventDefault()
-		void loadCustomers(searchInput)
+		const trimmed = searchInput.trim()
+
+		if (trimmed === activeSearch && data !== null && error === null) {
+			if (isLoading) {
+				activeRequestIdRef.current++
+				setIsLoading(false)
+			}
+			lastAttemptedQueryRef.current = trimmed
+			return
+		}
+
+		if (trimmed === lastAttemptedQueryRef.current && isLoading) {
+			return
+		}
+
+		void loadCustomers(trimmed)
 	}
 
 	function handleClearSearch(): void {
 		setSearchInput('')
+
+		// Si el directorio completo ya está visible y sin error:
+		if (activeSearch === '' && data !== null && error === null) {
+			// Si había una solicitud en vuelo, la invalidamos sin realizar una petición innecesaria
+			if (isLoading) {
+				activeRequestIdRef.current++
+				setIsLoading(false)
+			}
+			lastAttemptedQueryRef.current = ''
+			return
+		}
+
+		// Si ya está en curso una solicitud para el término vacío (directorio completo), no duplicarla
+		if (lastAttemptedQueryRef.current === '' && isLoading) {
+			return
+		}
+
+		// Si el directorio no estaba visible o había error, cargar el directorio completo
 		void loadCustomers('')
 	}
 
@@ -144,29 +207,26 @@ export function CustomersPage(): React.JSX.Element {
 						{/* Formulario de búsqueda */}
 						<form onSubmit={handleSearchSubmit} className="flex items-center gap-2 max-w-md w-full">
 							<div className="relative flex-1">
+								<Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
 								<Input
 									type="text"
 									placeholder="Nombre, cédula o RIF"
 									value={searchInput}
-									onChange={e => setSearchInput(e.target.value)}
-									className="pr-8"
+									onChange={handleInputChange}
+									className="pl-9 pr-8"
 								/>
 								{searchInput.length > 0 && (
 									<button
 										type="button"
-										onClick={() => setSearchInput('')}
-										className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-0.5"
+										onClick={handleClearSearch}
+										className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-0.5 cursor-pointer"
 										title="Borrar texto"
 									>
 										<X className="w-3.5 h-3.5" />
 									</button>
 								)}
 							</div>
-							<Button type="submit" variant="default" className="gap-1.5 shrink-0" disabled={isLoading}>
-								<Search className="w-4 h-4" />
-								<span>Buscar</span>
-							</Button>
-							{activeSearch.length > 0 && (
+							{(activeSearch.length > 0 || searchInput.length > 0) && (
 								<Button
 									type="button"
 									variant="outline"
