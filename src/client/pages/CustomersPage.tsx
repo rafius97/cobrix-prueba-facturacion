@@ -241,10 +241,10 @@ export function CustomersPage(): React.JSX.Element {
 
 					{/* 4. Tabla de Clientes */}
 					{data !== null && data.customers.length > 0 && (
-						<div className="overflow-x-auto relative">
+						<div className="overflow-auto relative max-h-[calc(100vh-280px)]">
 							{/* Indicador sutil de recarga durante búsquedas secundarias */}
 							{isLoading && (
-								<div className="absolute inset-0 bg-white/60 backdrop-blur-2xs flex items-center justify-center z-10 transition-opacity">
+								<div className="absolute inset-0 bg-white/60 backdrop-blur-2xs flex items-center justify-center z-20 transition-opacity">
 									<div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 text-sm font-medium text-slate-700">
 										<RefreshCw className="w-4 h-4 animate-spin text-indigo-600" />
 										<span>Actualizando resultados...</span>
@@ -253,7 +253,7 @@ export function CustomersPage(): React.JSX.Element {
 							)}
 
 							<table className="w-full text-left text-sm border-collapse">
-								<thead className="border-b border-slate-100 bg-slate-50/75 text-xs text-slate-500 font-semibold uppercase tracking-wider">
+								<thead className="border-b border-slate-200 bg-slate-50 text-xs text-slate-500 font-semibold uppercase tracking-wider sticky top-0 z-10 shadow-xs">
 									<tr>
 										<th className="py-3 px-6">Cliente</th>
 										<th className="py-3 px-4">Documento</th>

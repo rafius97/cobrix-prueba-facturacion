@@ -26,8 +26,8 @@ const NAVIGATION_ITEMS: readonly NavItem[] = [
 
 export function Sidebar(): React.JSX.Element {
 	return (
-		<aside className="w-64 border-r border-slate-200 bg-white flex flex-col shrink-0 min-h-screen">
-			<div className="h-16 flex items-center px-6 border-b border-slate-100 gap-3">
+		<aside className="w-64 border-r border-slate-200 bg-white flex flex-col shrink-0 h-full">
+			<div className="h-16 flex items-center px-6 border-b border-slate-100 gap-3 shrink-0">
 				<div className="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-xs">
 					<Radio className="w-5 h-5 animate-pulse" />
 				</div>
@@ -37,7 +37,7 @@ export function Sidebar(): React.JSX.Element {
 				</div>
 			</div>
 
-			<div className="p-4 flex-1 flex flex-col justify-between">
+			<div className="p-4 flex-1 overflow-y-auto flex flex-col justify-between">
 				<nav className="space-y-1">
 					<p className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
 						Menú Principal
