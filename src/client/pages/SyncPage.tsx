@@ -47,6 +47,8 @@ type ActiveSyncAction =
 	| 'payment_simulation'
 	| null
 
+type PendingConfirmation = 'import' | 'payment' | null
+
 /**
  * Deriva un texto explicativo human-readable a partir del resumen tipado de la corrida.
  */
@@ -102,6 +104,7 @@ export function SyncPage(): React.JSX.Element {
 
 	// Control de la operación actualmente en ejecución
 	const [activeAction, setActiveAction] = React.useState<ActiveSyncAction>(null)
+	const [pendingConfirmation, setPendingConfirmation] = React.useState<PendingConfirmation>(null)
 	const [operationFeedback, setOperationFeedback] = React.useState<{
 		readonly isSuccess: boolean
 		readonly isConflict: boolean
@@ -204,6 +207,42 @@ export function SyncPage(): React.JSX.Element {
 		}
 	}
 
+	function handleRequestRealSync(action: 'import' | 'payment'): void {
+		if (activeAction !== null) return
+		setPendingConfirmation(action)
+	}
+
+	function handleCancelConfirmation(): void {
+		setPendingConfirmation(null)
+	}
+
+	function handleConfirmRealSync(): void {
+		const actionToExecute = pendingConfirmation
+		setPendingConfirmation(null)
+		if (actionToExecute === 'import') {
+			void handleExecuteSync('import', false)
+		} else if (actionToExecute === 'payment') {
+			void handleExecuteSync('payment', false)
+		}
+	}
+
+	// Manejo de teclado para accesibilidad del modal de confirmación
+	React.useEffect(() => {
+		if (pendingConfirmation === null) return
+
+		function handleKeyDown(e: KeyboardEvent): void {
+			if (e.key === 'Escape') {
+				e.preventDefault()
+				handleCancelConfirmation()
+			}
+		}
+
+		window.addEventListener('keydown', handleKeyDown)
+		return () => {
+			window.removeEventListener('keydown', handleKeyDown)
+		}
+	}, [pendingConfirmation])
+
 	const isOperating = activeAction !== null
 
 	return (
@@ -299,7 +338,7 @@ export function SyncPage(): React.JSX.Element {
 								variant="default"
 								className="w-full sm:w-auto gap-2 bg-indigo-600 hover:bg-indigo-700 text-white"
 								disabled={isOperating}
-								onClick={() => void handleExecuteSync('import', false)}
+								onClick={() => handleRequestRealSync('import')}
 							>
 								{activeAction === 'import' ? (
 									<RefreshCw className="w-4 h-4 animate-spin text-white" />
@@ -351,7 +390,7 @@ export function SyncPage(): React.JSX.Element {
 								variant="default"
 								className="w-full sm:w-auto gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
 								disabled={isOperating}
-								onClick={() => void handleExecuteSync('payment', false)}
+								onClick={() => handleRequestRealSync('payment')}
 							>
 								{activeAction === 'payment' ? (
 									<RefreshCw className="w-4 h-4 animate-spin text-white" />
@@ -541,6 +580,77 @@ export function SyncPage(): React.JSX.Element {
 					)}
 				</CardContent>
 			</Card>
+
+			{/* Modal de confirmación accesible para operaciones reales */}
+			{pendingConfirmation !== null && (
+				<div
+					role="dialog"
+					aria-modal="true"
+					aria-labelledby="confirm-dialog-title"
+					aria-describedby="confirm-dialog-desc"
+					className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150"
+				>
+					<div
+						className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-md w-full p-6 space-y-4"
+						onClick={e => e.stopPropagation()}
+					>
+						<div className="flex items-start gap-3">
+							<div
+								className={`p-2.5 rounded-lg shrink-0 ${
+									pendingConfirmation === 'import'
+										? 'bg-indigo-50 text-indigo-600'
+										: 'bg-emerald-50 text-emerald-600'
+								}`}
+							>
+								<AlertTriangle className="w-5 h-5 text-amber-500" />
+							</div>
+							<div className="space-y-1">
+								<h2 id="confirm-dialog-title" className="text-base font-semibold text-slate-900">
+									{pendingConfirmation === 'import'
+										? 'Confirmar importación real de cuotas'
+										: 'Confirmar actualización real de pagos'}
+								</h2>
+								<p id="confirm-dialog-desc" className="text-xs text-slate-600 leading-relaxed">
+									{pendingConfirmation === 'import'
+										? 'Esta operación consultará la API del ISP y registrará o creará nuevos clientes, contratos y facturas en la base de datos de Cobrix. No se puede revertir de forma automática.'
+										: 'Esta operación consultará el libro de cobros del ISP y actualizará los estados a PAGADA y los saldos de facturas abiertas en la base de datos de Cobrix.'}
+								</p>
+							</div>
+						</div>
+
+						<div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800 space-y-1">
+							<span className="font-semibold block">Acción con impacto en base de datos:</span>
+							<p>
+								Si solo deseas comprobar qué registros calificarían sin modificar los datos de Cobrix,
+								cancela y utiliza la opción «Simular».
+							</p>
+						</div>
+
+						<div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+							<Button
+								type="button"
+								variant="outline"
+								onClick={handleCancelConfirmation}
+								className="text-xs"
+							>
+								Cancelar
+							</Button>
+							<Button
+								type="button"
+								variant="default"
+								onClick={handleConfirmRealSync}
+								className={`text-xs text-white ${
+									pendingConfirmation === 'import'
+										? 'bg-indigo-600 hover:bg-indigo-700'
+										: 'bg-emerald-600 hover:bg-emerald-700'
+								}`}
+							>
+								{pendingConfirmation === 'import' ? 'Confirmar importación' : 'Confirmar actualización'}
+							</Button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	)
 }
