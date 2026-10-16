@@ -14,6 +14,8 @@ import type {
 	ImportRunSummaryDto,
 	InvoiceItemDto,
 	PaymentSyncSummaryDto,
+	SyncRunDetailItemDto,
+	SyncRunDetailResponseDto,
 	SyncRunItemDto,
 	SyncRunListResponseDto,
 	SyncRunStatusDto,
@@ -434,4 +436,59 @@ export async function triggerPaymentSync(isSimulation: boolean): Promise<SyncRun
 	const rawText = await response.text()
 	const parsed: JsonValue = JSON.parse(rawText)
 	return parseSyncRunItem(parsed)
+}
+
+function parseSyncRunDetailItem(val: JsonValue): SyncRunDetailItemDto {
+	if (!isJsonObject(val)) throw new Error('Elemento de detalle de corrida inválido')
+	return {
+		id: typeof val.id === 'number' ? val.id : 0,
+		runId: typeof val.runId === 'string' ? val.runId : '',
+		contractId: typeof val.contractId === 'number' ? val.contractId : 0,
+		debtId: typeof val.debtId === 'string' ? val.debtId : '',
+		period: typeof val.period === 'string' ? val.period : '',
+		amountCents: typeof val.amountCents === 'number' ? val.amountCents : 0,
+		result: typeof val.result === 'string' ? val.result : '',
+		reason: typeof val.reason === 'string' ? val.reason : '',
+	}
+}
+
+function parseSyncRunDetailResponse(val: JsonValue): SyncRunDetailResponseDto {
+	if (!isJsonObject(val)) throw new Error('Respuesta de detalle de corrida inválida')
+	const rawRun = val.run
+	if (!isJsonObject(rawRun)) throw new Error('La respuesta debe contener la cabecera de la corrida (run)')
+	const run = parseSyncRunItem(rawRun)
+
+	const rawDetails = Array.isArray(val.details) ? val.details : []
+	const details = rawDetails.map(d => parseSyncRunDetailItem(d))
+
+	return {
+		run,
+		details,
+	}
+}
+
+/**
+ * Obtiene el detalle completo y auditoría de una corrida de sincronización específica por su ID.
+ */
+export async function fetchSyncRunDetail(runId: string): Promise<SyncRunDetailResponseDto> {
+	const sanitizedId = runId.trim()
+	if (sanitizedId.length === 0) {
+		throw new ApiClientError('Identificador de corrida no especificado', 400)
+	}
+
+	const url = `/api/sync/runs/${encodeURIComponent(sanitizedId)}`
+	const response = await fetch(url, {
+		method: 'GET',
+		headers: {
+			Accept: 'application/json',
+		},
+	})
+
+	if (!response.ok) {
+		throw await parseErrorResponse(response)
+	}
+
+	const rawText = await response.text()
+	const parsed: JsonValue = JSON.parse(rawText)
+	return parseSyncRunDetailResponse(parsed)
 }

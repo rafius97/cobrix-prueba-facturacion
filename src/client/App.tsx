@@ -8,6 +8,7 @@ import { CustomersPage } from './pages/CustomersPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 import { SyncPage } from './pages/SyncPage'
+import { SyncRunDetailPage } from './pages/SyncRunDetailPage'
 
 export function App(): React.JSX.Element {
 	return (
@@ -18,17 +19,7 @@ export function App(): React.JSX.Element {
 					<Route path="clientes" element={<CustomersPage />} />
 					<Route path="clientes/:id" element={<CustomerDossierPage />} />
 					<Route path="sincronizacion" element={<SyncPage />} />
-					<Route
-						path="sincronizacion/corridas/:id"
-						element={
-							<PlaceholderPage
-								title="Detalle de Corrida"
-								section="§3.2 a §3.4"
-								phase="Subfase 7.2.3.c"
-								description="Auditoría detallada, métricas e historial de registros evaluados durante la sincronización."
-							/>
-						}
-					/>
+					<Route path="sincronizacion/corridas/:id" element={<SyncRunDetailPage />} />
 					<Route
 						path="configuracion"
 						element={
