@@ -203,6 +203,9 @@ export interface InvoiceAggregateMetrics {
 
 export interface CustomerMetricsSummary {
 	readonly customerId: string
+	readonly originalDocument: string
+	readonly documentType: DocumentType | null
+	readonly personType: PersonType
 	readonly name: string
 	readonly totalContractsCount: number
 	readonly openInvoicesCount: number

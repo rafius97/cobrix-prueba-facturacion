@@ -79,10 +79,10 @@ export class HistoryService {
 	}
 
 	/**
-	 * Obtiene el resumen agregado de contratos y deudas para todos los clientes.
+	 * Obtiene el resumen agregado de contratos y deudas para todos los clientes, con búsqueda opcional.
 	 */
-	listCustomerMetrics(): CustomerMetricsSummary[] {
-		return customerRepository.listCustomerMetrics(this.db)
+	listCustomerMetrics(search?: string): CustomerMetricsSummary[] {
+		return customerRepository.listCustomerMetrics(this.db, search)
 	}
 
 	/**

@@ -254,6 +254,9 @@ function mapInvoiceAggregateMetrics(row: Record<string, SQLOutputValue>): Invoic
 function mapCustomerMetrics(row: Record<string, SQLOutputValue>): CustomerMetricsSummary {
 	return {
 		customerId: parseString(row, 'customer_id'),
+		originalDocument: parseString(row, 'original_document'),
+		documentType: parseDocumentType(row, 'document_type'),
+		personType: parsePersonType(row, 'person_type'),
 		name: parseString(row, 'customer_name'),
 		totalContractsCount: parseNumber(row, 'total_contracts_count'),
 		openInvoicesCount: parseNumber(row, 'open_invoices_count'),
@@ -366,10 +369,50 @@ export const customerRepository = {
 		return parseNumber(row, 'count')
 	},
 
-	listCustomerMetrics(db: DatabaseSync): CustomerMetricsSummary[] {
+	listCustomerMetrics(db: DatabaseSync, search?: string): CustomerMetricsSummary[] {
+		const trimmed = search !== undefined ? search.trim() : ''
+		if (trimmed.length > 0) {
+			const term = `%${trimmed.toLowerCase()}%`
+			const rows = db.prepare(`
+				SELECT
+					c.id AS customer_id,
+					c.original_document AS original_document,
+					c.document_type AS document_type,
+					c.person_type AS person_type,
+					c.name AS customer_name,
+					COALESCE(ct.contracts_count, 0) AS total_contracts_count,
+					COALESCE(inv.open_invoices_count, 0) AS open_invoices_count,
+					COALESCE(inv.paid_invoices_count, 0) AS paid_invoices_count,
+					COALESCE(inv.open_balance_cents, 0) AS open_balance_cents,
+					inv.oldest_open_due_date AS oldest_open_due_date
+				FROM customer c
+				LEFT JOIN (
+					SELECT customer_id, COUNT(*) AS contracts_count
+					FROM contract
+					GROUP BY customer_id
+				) ct ON ct.customer_id = c.id
+				LEFT JOIN (
+					SELECT
+						customer_id,
+						COUNT(CASE WHEN status = 'OPEN' THEN 1 END) AS open_invoices_count,
+						COUNT(CASE WHEN status = 'PAID' THEN 1 END) AS paid_invoices_count,
+						COALESCE(SUM(CASE WHEN status = 'OPEN' THEN balance_cents ELSE 0 END), 0) AS open_balance_cents,
+						MIN(CASE WHEN status = 'OPEN' THEN due_date END) AS oldest_open_due_date
+					FROM invoice
+					GROUP BY customer_id
+				) inv ON inv.customer_id = c.id
+				WHERE LOWER(c.name) LIKE ? OR LOWER(c.id) LIKE ? OR LOWER(c.original_document) LIKE ?
+				ORDER BY c.name ASC, c.id ASC
+			`).all(term, term, term)
+			return rows.map(mapCustomerMetrics)
+		}
+
 		const rows = db.prepare(`
 			SELECT
 				c.id AS customer_id,
+				c.original_document AS original_document,
+				c.document_type AS document_type,
+				c.person_type AS person_type,
 				c.name AS customer_name,
 				COALESCE(ct.contracts_count, 0) AS total_contracts_count,
 				COALESCE(inv.open_invoices_count, 0) AS open_invoices_count,
@@ -401,6 +444,9 @@ export const customerRepository = {
 		const row = db.prepare(`
 			SELECT
 				c.id AS customer_id,
+				c.original_document AS original_document,
+				c.document_type AS document_type,
+				c.person_type AS person_type,
 				c.name AS customer_name,
 				COALESCE(ct.contracts_count, 0) AS total_contracts_count,
 				COALESCE(inv.open_invoices_count, 0) AS open_invoices_count,

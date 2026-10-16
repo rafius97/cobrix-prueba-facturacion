@@ -101,3 +101,100 @@ export interface ApiErrorResponseDto {
 	readonly statusCode: number
 	readonly path: string
 }
+
+// ============================================================================
+// Directorio de Clientes (/api/customers)
+// ============================================================================
+
+export interface CustomerListItemDto {
+	readonly customerId: string
+	readonly originalDocument: string
+	readonly documentType: string | null
+	readonly personType: 'NATURAL' | 'JURIDICA'
+	readonly name: string
+	readonly totalContractsCount: number
+	readonly openInvoicesCount: number
+	readonly paidInvoicesCount: number
+	readonly openBalanceCents: number
+	readonly oldestOpenDueDate: string | null
+}
+
+export interface CustomerListResponseDto {
+	readonly customers: readonly CustomerListItemDto[]
+	readonly totalCount: number
+}
+
+// ============================================================================
+// Expediente del Cliente (/api/customers/:id)
+// ============================================================================
+
+export interface CustomerDetailDto {
+	readonly id: string
+	readonly originalDocument: string
+	readonly documentType: string | null
+	readonly personType: 'NATURAL' | 'JURIDICA'
+	readonly name: string
+	readonly phone: string
+	readonly email: string
+	readonly address: string
+	readonly createdAt: string
+	readonly updatedAt: string
+}
+
+export interface CustomerMetricsDto {
+	readonly totalContractsCount: number
+	readonly openInvoicesCount: number
+	readonly paidInvoicesCount: number
+	readonly openBalanceCents: number
+	readonly oldestOpenDueDate: string | null
+}
+
+export interface ContractItemDto {
+	readonly id: number
+	readonly customerId: string
+	readonly code: string
+	readonly status: string
+	readonly plan: string
+	readonly planPriceCents: number
+	readonly branch: string
+	readonly currency: string
+	readonly billingDay: number
+	readonly cutoffDay: number
+	readonly createdAt: string
+	readonly updatedAt: string
+}
+
+export interface InvoiceItemDto {
+	readonly id: number
+	readonly invoiceNumber: string
+	readonly externalDebtId: string
+	readonly contractId: number
+	readonly customerId: string
+	readonly period: string
+	readonly dueDate: string
+	readonly cutDate: string
+	readonly totalAmountCents: number
+	readonly balanceCents: number
+	readonly status: 'OPEN' | 'PAID'
+	readonly paidAt: string | null
+	readonly ispPaymentInvoice: string | null
+	readonly createdAt: string
+	readonly updatedAt: string
+}
+
+export interface CustomerEventItemDto {
+	readonly id: number
+	readonly customerId: string
+	readonly eventType: 'CUSTOMER_CREATED' | 'INVOICE_IMPORTED' | 'INVOICE_PAID' | 'PARTIAL_PAYMENT'
+	readonly description: string
+	readonly metadataJson: string
+	readonly createdAt: string
+}
+
+export interface CustomerDossierResponseDto {
+	readonly customer: CustomerDetailDto
+	readonly metrics: CustomerMetricsDto
+	readonly contracts: readonly ContractItemDto[]
+	readonly invoices: readonly InvoiceItemDto[]
+	readonly events: readonly CustomerEventItemDto[]
+}

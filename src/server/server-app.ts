@@ -12,6 +12,7 @@ import type { DatabaseSync } from 'node:sqlite'
 
 import { createCobrixDatabase } from '../cobrix/db/database.ts'
 import type { ApiErrorResponseDto } from '../shared/api-types.ts'
+import { getCustomerDossier, getCustomersDirectory } from './api/customers-controller.ts'
 import { getDashboardData } from './api/dashboard-controller.ts'
 import { getEnunciadoData } from './api/enunciado-controller.ts'
 import { serveStatic } from './static-handler.ts'
@@ -91,6 +92,82 @@ export function createServerApp(deps: ServerAppDeps): Server {
 					return
 				} catch (err) {
 					const message = err instanceof Error ? err.message : 'Error interno al leer enunciado'
+					const errorDto: ApiErrorResponseDto = {
+						error: message,
+						statusCode: 500,
+						path: pathname,
+					}
+					sendJson(res, 500, errorDto)
+					return
+				}
+			}
+			const errorDto: ApiErrorResponseDto = {
+				error: 'Method Not Allowed',
+				statusCode: 405,
+				path: pathname,
+			}
+			sendJson(res, 405, errorDto)
+			return
+		}
+
+		if (pathname === '/api/customers') {
+			if (req.method === 'GET') {
+				try {
+					const db = resolveDb()
+					const searchParam = url.searchParams.get('search') ?? undefined
+					const directoryData = getCustomersDirectory(db, searchParam)
+					sendJson(res, 200, directoryData)
+					return
+				} catch (err) {
+					const message = err instanceof Error ? err.message : 'Error interno al consultar clientes'
+					const errorDto: ApiErrorResponseDto = {
+						error: message,
+						statusCode: 500,
+						path: pathname,
+					}
+					sendJson(res, 500, errorDto)
+					return
+				}
+			}
+			const errorDto: ApiErrorResponseDto = {
+				error: 'Method Not Allowed',
+				statusCode: 405,
+				path: pathname,
+			}
+			sendJson(res, 405, errorDto)
+			return
+		}
+
+		if (pathname.startsWith('/api/customers/')) {
+			const rawCustomerId = pathname.slice('/api/customers/'.length).trim()
+			const customerId = decodeURIComponent(rawCustomerId)
+			if (customerId.length === 0) {
+				const errorDto: ApiErrorResponseDto = {
+					error: 'Missing customer identifier',
+					statusCode: 400,
+					path: pathname,
+				}
+				sendJson(res, 400, errorDto)
+				return
+			}
+
+			if (req.method === 'GET') {
+				try {
+					const db = resolveDb()
+					const dossierData = getCustomerDossier(db, customerId)
+					if (dossierData === null) {
+						const errorDto: ApiErrorResponseDto = {
+							error: `Customer with id "${customerId}" not found`,
+							statusCode: 404,
+							path: pathname,
+						}
+						sendJson(res, 404, errorDto)
+						return
+					}
+					sendJson(res, 200, dossierData)
+					return
+				} catch (err) {
+					const message = err instanceof Error ? err.message : 'Error interno al consultar expediente'
 					const errorDto: ApiErrorResponseDto = {
 						error: message,
 						statusCode: 500,
