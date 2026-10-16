@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
 
 import { AppLayout } from './components/layout/AppLayout'
 import { AssignmentPage } from './pages/AssignmentPage'
+import { CustomerDossierPage } from './pages/CustomerDossierPage'
 import { CustomersPage } from './pages/CustomersPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
@@ -14,17 +15,7 @@ export function App(): React.JSX.Element {
 				<Route path="/" element={<AppLayout />}>
 					<Route index element={<DashboardPage />} />
 					<Route path="clientes" element={<CustomersPage />} />
-					<Route
-						path="clientes/:id"
-						element={
-							<PlaceholderPage
-								title="Expediente del Cliente"
-								section="§3.6"
-								phase="Subfase 7.2"
-								description="Detalle completo del cliente: contratos, facturas, abonos y eventos de auditoría."
-							/>
-						}
-					/>
+					<Route path="clientes/:id" element={<CustomerDossierPage />} />
 					<Route
 						path="sincronizacion"
 						element={
