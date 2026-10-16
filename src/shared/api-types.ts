@@ -60,6 +60,31 @@ export interface SyncRunItemDto {
 	readonly summary: SyncRunSummaryDto | null
 }
 
+export interface SyncRunListResponseDto {
+	readonly runs: readonly SyncRunItemDto[]
+	readonly totalCount: number
+}
+
+export interface SyncRunDetailItemDto {
+	readonly id: number
+	readonly runId: string
+	readonly contractId: number
+	readonly debtId: string
+	readonly period: string
+	readonly amountCents: number
+	readonly result: string
+	readonly reason: string
+}
+
+export interface SyncRunDetailResponseDto {
+	readonly run: SyncRunItemDto
+	readonly details: readonly SyncRunDetailItemDto[]
+}
+
+export interface SyncRunTriggerRequestDto {
+	readonly isSimulation?: boolean
+}
+
 export interface GlobalMetricsDto {
 	readonly totalCustomersCount: number
 	readonly totalContractsCount: number

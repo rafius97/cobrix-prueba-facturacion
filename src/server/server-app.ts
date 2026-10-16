@@ -10,11 +10,20 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { DatabaseSync } from 'node:sqlite'
 
+import { BillingApiClient } from '../cobrix/client/billing-api-client.ts'
 import { createCobrixDatabase } from '../cobrix/db/database.ts'
-import type { ApiErrorResponseDto } from '../shared/api-types.ts'
+import type { ApiErrorResponseDto, SyncRunTriggerRequestDto } from '../shared/api-types.ts'
 import { getCustomerDossier, getCustomersDirectory } from './api/customers-controller.ts'
 import { getDashboardData } from './api/dashboard-controller.ts'
 import { getEnunciadoData } from './api/enunciado-controller.ts'
+import { isJsonObject, safeJsonParse, type JsonValue } from '../cobrix/history/parsers.ts'
+import {
+	executeImportSync,
+	executePaymentSync,
+	getSyncRunDetail,
+	getSyncRunsHistory,
+	SyncConflictError,
+} from './api/sync-controller.ts'
 import { serveStatic } from './static-handler.ts'
 
 export interface ServerAppDeps {
@@ -23,6 +32,7 @@ export interface ServerAppDeps {
 	readonly db?: DatabaseSync
 	readonly distDir?: string
 	readonly legacyHandler?: (req: IncomingMessage, res: ServerResponse) => Promise<void> | void
+	readonly billingClient?: BillingApiClient
 }
 
 function sendJson<T>(res: ServerResponse, status: number, data: T): void {
@@ -32,6 +42,56 @@ function sendJson<T>(res: ServerResponse, status: number, data: T): void {
 		'content-length': Buffer.byteLength(body),
 	})
 	res.end(body)
+}
+
+class InvalidRequestBodyError extends Error {
+	constructor(message: string) {
+		super(message)
+		this.name = 'InvalidRequestBodyError'
+	}
+}
+
+async function readRequestBody(req: IncomingMessage): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const chunks: Buffer[] = []
+		req.on('data', (chunk: Buffer) => {
+			chunks.push(chunk)
+		})
+		req.on('end', () => {
+			resolve(Buffer.concat(chunks).toString('utf-8'))
+		})
+		req.on('error', err => {
+			reject(err)
+		})
+	})
+}
+
+function parseSyncTriggerBody(rawText: string): SyncRunTriggerRequestDto {
+	const trimmed = rawText.trim()
+	if (trimmed === '') {
+		return { isSimulation: false }
+	}
+
+	let parsed: JsonValue
+	try {
+		parsed = safeJsonParse(trimmed)
+	} catch {
+		throw new InvalidRequestBodyError('Invalid JSON payload in request body')
+	}
+
+	if (!isJsonObject(parsed)) {
+		throw new InvalidRequestBodyError('Request body must be a JSON object')
+	}
+
+	const isSimVal = parsed['isSimulation']
+
+	if (isSimVal !== undefined && typeof isSimVal !== 'boolean') {
+		throw new InvalidRequestBodyError('Property "isSimulation" must be a boolean')
+	}
+
+	return {
+		isSimulation: isSimVal === true,
+	}
 }
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -168,6 +228,182 @@ export function createServerApp(deps: ServerAppDeps): Server {
 					return
 				} catch (err) {
 					const message = err instanceof Error ? err.message : 'Error interno al consultar expediente'
+					const errorDto: ApiErrorResponseDto = {
+						error: message,
+						statusCode: 500,
+						path: pathname,
+					}
+					sendJson(res, 500, errorDto)
+					return
+				}
+			}
+			const errorDto: ApiErrorResponseDto = {
+				error: 'Method Not Allowed',
+				statusCode: 405,
+				path: pathname,
+			}
+			sendJson(res, 405, errorDto)
+			return
+		}
+
+		if (pathname === '/api/sync/import') {
+			if (req.method === 'POST') {
+				try {
+					const bodyText = await readRequestBody(req)
+					const bodyDto = parseSyncTriggerBody(bodyText)
+					const db = resolveDb()
+					const result = await executeImportSync(db, {
+						isSimulation: bodyDto.isSimulation,
+						billingClient: deps.billingClient,
+					})
+					sendJson(res, 200, result)
+					return
+				} catch (err) {
+					if (err instanceof SyncConflictError) {
+						const errorDto: ApiErrorResponseDto = {
+							error: err.message,
+							statusCode: 409,
+							path: pathname,
+						}
+						sendJson(res, 409, errorDto)
+						return
+					}
+					if (err instanceof InvalidRequestBodyError) {
+						const errorDto: ApiErrorResponseDto = {
+							error: err.message,
+							statusCode: 400,
+							path: pathname,
+						}
+						sendJson(res, 400, errorDto)
+						return
+					}
+					const message = err instanceof Error ? err.message : 'Error interno al ejecutar importación'
+					const errorDto: ApiErrorResponseDto = {
+						error: message,
+						statusCode: 500,
+						path: pathname,
+					}
+					sendJson(res, 500, errorDto)
+					return
+				}
+			}
+			const errorDto: ApiErrorResponseDto = {
+				error: 'Method Not Allowed',
+				statusCode: 405,
+				path: pathname,
+			}
+			sendJson(res, 405, errorDto)
+			return
+		}
+
+		if (pathname === '/api/sync/payments') {
+			if (req.method === 'POST') {
+				try {
+					const bodyText = await readRequestBody(req)
+					const bodyDto = parseSyncTriggerBody(bodyText)
+					const db = resolveDb()
+					const result = await executePaymentSync(db, {
+						isSimulation: bodyDto.isSimulation,
+						billingClient: deps.billingClient,
+					})
+					sendJson(res, 200, result)
+					return
+				} catch (err) {
+					if (err instanceof SyncConflictError) {
+						const errorDto: ApiErrorResponseDto = {
+							error: err.message,
+							statusCode: 409,
+							path: pathname,
+						}
+						sendJson(res, 409, errorDto)
+						return
+					}
+					if (err instanceof InvalidRequestBodyError) {
+						const errorDto: ApiErrorResponseDto = {
+							error: err.message,
+							statusCode: 400,
+							path: pathname,
+						}
+						sendJson(res, 400, errorDto)
+						return
+					}
+					const message = err instanceof Error ? err.message : 'Error interno al sincronizar pagos'
+					const errorDto: ApiErrorResponseDto = {
+						error: message,
+						statusCode: 500,
+						path: pathname,
+					}
+					sendJson(res, 500, errorDto)
+					return
+				}
+			}
+			const errorDto: ApiErrorResponseDto = {
+				error: 'Method Not Allowed',
+				statusCode: 405,
+				path: pathname,
+			}
+			sendJson(res, 405, errorDto)
+			return
+		}
+
+		if (pathname === '/api/sync/runs') {
+			if (req.method === 'GET') {
+				try {
+					const db = resolveDb()
+					const limitParam = url.searchParams.get('limit')
+					const limit = limitParam !== null && /^\d+$/.test(limitParam) ? parseInt(limitParam, 10) : undefined
+					const data = getSyncRunsHistory(db, limit)
+					sendJson(res, 200, data)
+					return
+				} catch (err) {
+					const message = err instanceof Error ? err.message : 'Error interno al consultar historial de sincronización'
+					const errorDto: ApiErrorResponseDto = {
+						error: message,
+						statusCode: 500,
+						path: pathname,
+					}
+					sendJson(res, 500, errorDto)
+					return
+				}
+			}
+			const errorDto: ApiErrorResponseDto = {
+				error: 'Method Not Allowed',
+				statusCode: 405,
+				path: pathname,
+			}
+			sendJson(res, 405, errorDto)
+			return
+		}
+
+		if (pathname.startsWith('/api/sync/runs/')) {
+			const runId = pathname.slice('/api/sync/runs/'.length).trim()
+			if (runId.length === 0) {
+				const errorDto: ApiErrorResponseDto = {
+					error: 'Missing run identifier',
+					statusCode: 400,
+					path: pathname,
+				}
+				sendJson(res, 400, errorDto)
+				return
+			}
+
+			if (req.method === 'GET') {
+				try {
+					const db = resolveDb()
+					const detailData = getSyncRunDetail(db, runId)
+					if (detailData === null) {
+						const errorDto: ApiErrorResponseDto = {
+							error: `Sync run with id "${runId}" not found`,
+							statusCode: 404,
+							path: pathname,
+						}
+						sendJson(res, 404, errorDto)
+						return
+					}
+					sendJson(res, 200, detailData)
+					return
+				} catch (err) {
+					const message = err instanceof Error ? err.message : 'Error interno al consultar detalle de corrida'
 					const errorDto: ApiErrorResponseDto = {
 						error: message,
 						statusCode: 500,
