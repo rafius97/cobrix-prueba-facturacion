@@ -112,6 +112,38 @@ export interface CompanyConfigDto {
 	readonly autoRunActive: boolean
 }
 
+export type ConfigResponseDto = CompanyConfigDto
+
+export interface UpdateConfigRequestDto {
+	readonly companyName?: string
+	readonly companyTaxId?: string
+	readonly companyEmail?: string
+	readonly apiUrl?: string
+	readonly apiUsername?: string
+	readonly apiPassword?: string
+	readonly importableStatuses?: readonly string[]
+	readonly windowMonths?: number | null
+	readonly maxRecentInstallments?: number | null
+	readonly graceDays?: number
+	readonly runInvoiceLimit?: number | null
+	readonly runAmountLimitCents?: number | null
+	readonly excludedDocumentTypes?: readonly string[]
+	readonly autoRunHour?: string
+	readonly autoRunActive?: boolean
+}
+
+export interface TestConnectionRequestDto {
+	readonly apiUrl?: string
+	readonly apiUsername?: string
+	readonly apiPassword?: string
+}
+
+export interface TestConnectionResponseDto {
+	readonly success: boolean
+	readonly totalContracts?: number
+	readonly message: string
+}
+
 export interface DashboardResponseDto {
 	readonly metrics: GlobalMetricsDto
 	readonly company: CompanyConfigDto

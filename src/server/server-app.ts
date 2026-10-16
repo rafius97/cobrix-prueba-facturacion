@@ -13,6 +13,13 @@ import type { DatabaseSync } from 'node:sqlite'
 import { BillingApiClient } from '../cobrix/client/billing-api-client.ts'
 import { createCobrixDatabase } from '../cobrix/db/database.ts'
 import type { ApiErrorResponseDto, SyncRunTriggerRequestDto } from '../shared/api-types.ts'
+import {
+	ConfigValidationError,
+	getCobrixConfig,
+	testIspConnection,
+	updateCobrixConfig,
+	validateAndParseUpdateConfig,
+} from './api/config-controller.ts'
 import { getCustomerDossier, getCustomersDirectory } from './api/customers-controller.ts'
 import { getDashboardData } from './api/dashboard-controller.ts'
 import { getEnunciadoData } from './api/enunciado-controller.ts'
@@ -161,6 +168,152 @@ export function createServerApp(deps: ServerAppDeps): Server {
 					return
 				}
 			}
+			const errorDto: ApiErrorResponseDto = {
+				error: 'Method Not Allowed',
+				statusCode: 405,
+				path: pathname,
+			}
+			sendJson(res, 405, errorDto)
+			return
+		}
+
+		if (pathname === '/api/config') {
+			if (req.method === 'GET') {
+				try {
+					const db = resolveDb()
+					const configData = getCobrixConfig(db)
+					sendJson(res, 200, configData)
+					return
+				} catch (err) {
+					const message = err instanceof Error ? err.message : 'Error interno al consultar configuración'
+					const errorDto: ApiErrorResponseDto = {
+						error: message,
+						statusCode: 500,
+						path: pathname,
+					}
+					sendJson(res, 500, errorDto)
+					return
+				}
+			}
+
+			if (req.method === 'PUT') {
+				try {
+					const bodyText = await readRequestBody(req)
+					let parsed: JsonValue
+					try {
+						parsed = safeJsonParse(bodyText.trim())
+					} catch {
+						throw new InvalidRequestBodyError('Invalid JSON payload in request body')
+					}
+					if (!isJsonObject(parsed)) {
+						throw new InvalidRequestBodyError('Request body must be a JSON object')
+					}
+
+					const updateInput = validateAndParseUpdateConfig(parsed)
+					const db = resolveDb()
+					const updatedConfig = updateCobrixConfig(db, updateInput)
+					sendJson(res, 200, updatedConfig)
+					return
+				} catch (err) {
+					if (err instanceof SyncConflictError) {
+						const errorDto: ApiErrorResponseDto = {
+							error: err.message,
+							statusCode: 409,
+							path: pathname,
+						}
+						sendJson(res, 409, errorDto)
+						return
+					}
+					if (err instanceof InvalidRequestBodyError || err instanceof ConfigValidationError) {
+						const errorDto: ApiErrorResponseDto = {
+							error: err.message,
+							statusCode: 400,
+							path: pathname,
+						}
+						sendJson(res, 400, errorDto)
+						return
+					}
+					const message = err instanceof Error ? err.message : 'Error interno al actualizar configuración'
+					const errorDto: ApiErrorResponseDto = {
+						error: message,
+						statusCode: 500,
+						path: pathname,
+					}
+					sendJson(res, 500, errorDto)
+					return
+				}
+			}
+
+			const errorDto: ApiErrorResponseDto = {
+				error: 'Method Not Allowed',
+				statusCode: 405,
+				path: pathname,
+			}
+			sendJson(res, 405, errorDto)
+			return
+		}
+
+		if (pathname === '/api/config/test-connection') {
+			if (req.method === 'POST') {
+				try {
+					const bodyText = await readRequestBody(req)
+					let parsedPayload: Record<string, string> = {}
+					if (bodyText.trim().length > 0) {
+						let parsed: JsonValue
+						try {
+							parsed = safeJsonParse(bodyText.trim())
+						} catch {
+							throw new InvalidRequestBodyError('Invalid JSON payload in request body')
+						}
+						if (!isJsonObject(parsed)) {
+							throw new InvalidRequestBodyError('Request body must be a JSON object')
+						}
+						if (parsed['apiUrl'] !== undefined && typeof parsed['apiUrl'] !== 'string') {
+							throw new ConfigValidationError('Property "apiUrl" must be a string')
+						}
+						if (parsed['apiUsername'] !== undefined && typeof parsed['apiUsername'] !== 'string') {
+							throw new ConfigValidationError('Property "apiUsername" must be a string')
+						}
+						if (parsed['apiPassword'] !== undefined && typeof parsed['apiPassword'] !== 'string') {
+							throw new ConfigValidationError('Property "apiPassword" must be a string')
+						}
+
+						const pUrl = parsed['apiUrl']
+						const pUser = parsed['apiUsername']
+						const pPass = parsed['apiPassword']
+
+						parsedPayload = {
+							...(typeof pUrl === 'string' ? { apiUrl: pUrl } : {}),
+							...(typeof pUser === 'string' ? { apiUsername: pUser } : {}),
+							...(typeof pPass === 'string' ? { apiPassword: pPass } : {}),
+						}
+					}
+
+					const db = resolveDb()
+					const result = await testIspConnection(db, parsedPayload, deps.billingClient)
+					sendJson(res, 200, result)
+					return
+				} catch (err) {
+					if (err instanceof InvalidRequestBodyError || err instanceof ConfigValidationError) {
+						const errorDto: ApiErrorResponseDto = {
+							error: err.message,
+							statusCode: 400,
+							path: pathname,
+						}
+						sendJson(res, 400, errorDto)
+						return
+					}
+					const message = err instanceof Error ? err.message : 'Error interno al probar conexión con el ISP'
+					const errorDto: ApiErrorResponseDto = {
+						error: message,
+						statusCode: 500,
+						path: pathname,
+					}
+					sendJson(res, 500, errorDto)
+					return
+				}
+			}
+
 			const errorDto: ApiErrorResponseDto = {
 				error: 'Method Not Allowed',
 				statusCode: 405,
