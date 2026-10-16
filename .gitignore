@@ -1,5 +1,9 @@
 node_modules
+dist
+.vite
 data/*.sqlite-wal
 data/*.sqlite-shm
+data/cobrix.sqlite
 *.log
 .DS_Store
+git add

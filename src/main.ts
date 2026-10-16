@@ -29,10 +29,12 @@ const billingApi = createBillingApiServer(billingApiDb)
 await billingApi.listen(billingApiPort, host)
 const simulatorUrl = `http://${host}:${billingApiPort}`
 
-const app = createApp({ simulatorUrl, assignmentPath: resolve(root, 'docs/ENUNCIADO.md') })
+const distDir = resolve(root, 'dist/client')
+const app = createApp({ simulatorUrl, assignmentPath: resolve(root, 'docs/ENUNCIADO.md'), distDir })
 app.listen(appPort, host)
 
-console.log(`Panel (esqueleto):        http://${host}:${appPort}`)
+const panelMode = existsSync(resolve(distDir, 'index.html')) ? 'React SPA' : 'Esqueleto'
+console.log(`Panel (${panelMode}):        http://${host}:${appPort}`)
 console.log(`API del administrador:    ${simulatorUrl}/api/v1`)
 console.log(`Swagger:                  ${simulatorUrl}/docs`)
 console.log(`Fecha de la prueba:       ${process.env.SANDBOX_TODAY}`)

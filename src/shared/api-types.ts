@@ -1,0 +1,103 @@
+/**
+ * Contratos de datos fuertemente tipados para la API HTTP de Cobrix (/api/*).
+ * Isomórficos: compartidos entre el servidor Node.js y la aplicación cliente React.
+ * Estrictamente tipado sin `any` ni `unknown`.
+ */
+
+export type SyncRunStatusDto = 'COMPLETED' | 'FAILED'
+export type SyncRunTypeDto = 'IMPORT' | 'PAYMENT_UPDATE'
+
+export interface ImportRunSummaryDto {
+	readonly type: 'IMPORT'
+	readonly isSimulation: boolean
+	readonly durationMs: number
+	readonly totalContractsInspected: number
+	readonly totalInstallmentsEvaluated: number
+	readonly importedInvoicesCount: number
+	readonly importedAmountCents: number
+	readonly newCustomersCount: number
+	readonly alreadyImportedCount: number
+	readonly excludedByStatusCount: number
+	readonly excludedByDocumentTypeCount: number
+	readonly outOfWindowCount: number
+	readonly excludedByMaxInstallmentsCount: number
+	readonly limitReachedCount: number
+	readonly inconsistentCurrencyCount: number
+	readonly residualBalanceCount: number
+	readonly noDebtCount: number
+	readonly invalidIdentificationCount: number
+	readonly invalidDataCount: number
+}
+
+export interface PaymentSyncSummaryDto {
+	readonly type: 'PAYMENT_UPDATE'
+	readonly isSimulation: boolean
+	readonly durationMs: number
+	readonly totalInvoicesInspected: number
+	readonly totalContractsInspected: number
+	readonly markedPaidCount: number
+	readonly markedPaidAmountCents: number
+	readonly partialPaymentsCount: number
+	readonly partialPaymentsAmountCents: number
+	readonly stillOpenCount: number
+	readonly stillOpenBalanceCents: number
+	readonly exemptionCount: number
+	readonly noEvidenceCount: number
+	readonly contradictoryDataCount: number
+	readonly invalidDataCount: number
+}
+
+export type SyncRunSummaryDto = ImportRunSummaryDto | PaymentSyncSummaryDto
+
+export interface SyncRunItemDto {
+	readonly id: string
+	readonly type: SyncRunTypeDto
+	readonly isSimulation: boolean
+	readonly status: SyncRunStatusDto
+	readonly startedAt: string
+	readonly finishedAt: string
+	readonly errorMessage: string | null
+	readonly summary: SyncRunSummaryDto | null
+}
+
+export interface GlobalMetricsDto {
+	readonly totalCustomersCount: number
+	readonly totalContractsCount: number
+	readonly openInvoicesCount: number
+	readonly paidInvoicesCount: number
+	readonly totalOpenBalanceCents: number
+	readonly oldestOpenDueDate: string | null
+	readonly recentRuns: readonly SyncRunItemDto[]
+}
+
+export interface CompanyConfigDto {
+	readonly companyName: string
+	readonly companyTaxId: string
+	readonly companyEmail: string
+	readonly apiUrl: string
+	readonly apiUsername: string
+	readonly importableStatuses: readonly string[]
+	readonly windowMonths: number | null
+	readonly maxRecentInstallments: number | null
+	readonly graceDays: number
+	readonly runInvoiceLimit: number | null
+	readonly runAmountLimitCents: number | null
+	readonly excludedDocumentTypes: readonly string[]
+	readonly autoRunHour: string
+	readonly autoRunActive: boolean
+}
+
+export interface DashboardResponseDto {
+	readonly metrics: GlobalMetricsDto
+	readonly company: CompanyConfigDto
+}
+
+export interface EnunciadoResponseDto {
+	readonly content: string
+}
+
+export interface ApiErrorResponseDto {
+	readonly error: string
+	readonly statusCode: number
+	readonly path: string
+}

@@ -18,6 +18,8 @@ export interface AppDeps {
 	readonly simulatorUrl: string
 	/** Path of docs/ENUNCIADO.md, served at /enunciado. */
 	readonly assignmentPath: string
+	/** Optional directory for compiled static client assets. */
+	readonly distDir?: string
 }
 
 interface Screen {
@@ -87,6 +89,8 @@ const SCREENS: Record<string, Screen> = {
 	},
 }
 
+import { createServerApp } from '../server/server-app.ts'
+
 export function createApp(deps: AppDeps): Server {
 	function placeholder(path: string): Raw {
 		const screen = SCREENS[path]!
@@ -132,11 +136,11 @@ export function createApp(deps: AppDeps): Server {
 			sendHtml(res, 404, layout({ title: 'No encontrado', active: '', company, body: html`<h1>No encontrado</h1><p><a href="/">Volver</a></p>` }))
 	}
 
-	return createServer((req, res) => {
-		route(req, res).catch((error: unknown) => {
-			console.error('[panel]', error)
-			if (!res.headersSent) sendHtml(res, 500, layout({ title: 'Error', active: '', company: '', body: html`<h1>Algo falló</h1><p class="muted">${esc(error instanceof Error ? error.message : error)}</p>` }))
-		})
+	return createServerApp({
+		simulatorUrl: deps.simulatorUrl,
+		assignmentPath: deps.assignmentPath,
+		distDir: deps.distDir,
+		legacyHandler: route,
 	})
 }
 

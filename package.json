@@ -11,10 +11,28 @@
 		"start": "node --disable-warning=ExperimentalWarning src/main.ts",
 		"seed": "node --disable-warning=ExperimentalWarning src/billing-api/seed.ts",
 		"test": "node --disable-warning=ExperimentalWarning --test --test-concurrency=1 \"test/**/*.test.ts\"",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit",
+		"dev": "vite",
+		"build": "vite build"
 	},
 	"devDependencies": {
+		"@tailwindcss/vite": "^4.3.3",
 		"@types/node": "24.3.0",
-		"typescript": "5.9.2"
+		"@types/react": "^19.3.0",
+		"@types/react-dom": "^19.3.0",
+		"@vitejs/plugin-react": "^4.7.0",
+		"tailwindcss": "^4.3.3",
+		"typescript": "5.9.2",
+		"vite": "^6.4.4"
+	},
+	"dependencies": {
+		"@radix-ui/react-slot": "^1.5.0",
+		"class-variance-authority": "^0.7.1",
+		"clsx": "^2.1.1",
+		"lucide-react": "^0.475.0",
+		"react": "^19.3.1",
+		"react-dom": "^19.3.1",
+		"react-router-dom": "^7.18.4",
+		"tailwind-merge": "^3.7.0"
 	}
 }
