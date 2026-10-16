@@ -6,7 +6,7 @@ import {
 	CheckCircle,
 	Clock,
 	DollarSign,
-	FileText,
+	Download,
 	HelpCircle,
 	Layers,
 	Server,
@@ -94,18 +94,18 @@ export function DashboardPage(): React.JSX.Element {
 						Monitoreo en tiempo real de clientes, deuda e integración con el administrador de facturas.
 					</p>
 				</div>
-				<div className="flex items-center gap-3">
-					<Button asChild variant="outline" className="gap-2">
-						<Link to="/enunciado">
-							<FileText className="w-4 h-4 text-slate-500" />
-							<span>Ver Enunciado</span>
+				<div className="flex flex-wrap items-center gap-3">
+					<Button asChild className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+						<Link to="/sincronizacion">
+							<Download className="w-4 h-4" />
+							<span>Importar cuotas</span>
 						</Link>
 					</Button>
-					<Button asChild className="gap-2 bg-indigo-600 hover:bg-indigo-700">
-						<a href="http://127.0.0.1:4310/docs" target="_blank" rel="noopener noreferrer">
-							<span>Swagger ISP</span>
-							<ArrowUpRight className="w-4 h-4" />
-						</a>
+					<Button asChild variant="outline" className="gap-2">
+						<Link to="/sincronizacion">
+							<DollarSign className="w-4 h-4 text-emerald-600" />
+							<span>Actualizar pagadas</span>
+						</Link>
 					</Button>
 				</div>
 			</div>
@@ -293,9 +293,20 @@ export function DashboardPage(): React.JSX.Element {
 							</div>
 						</div>
 
-						<div className="pt-2">
+						<div className="pt-2 space-y-2">
 							<Button asChild variant="secondary" className="w-full text-xs">
 								<Link to="/configuracion">Ver Ajustes Completos</Link>
+							</Button>
+							<Button
+								asChild
+								variant="ghost"
+								size="sm"
+								className="w-full text-xs text-slate-500 hover:text-slate-900 gap-1.5 h-8"
+							>
+								<a href="http://127.0.0.1:4310/docs" target="_blank" rel="noopener noreferrer">
+									<span>Swagger ISP</span>
+									<ArrowUpRight className="w-3.5 h-3.5" />
+								</a>
 							</Button>
 						</div>
 					</CardContent>

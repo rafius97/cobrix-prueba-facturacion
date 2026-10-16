@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { NavLink } from 'react-router-dom'
 import {
-	FileText,
 	LayoutDashboard,
 	RefreshCw,
 	Settings,
@@ -23,7 +22,6 @@ const NAVIGATION_ITEMS: readonly NavItem[] = [
 	{ name: 'Clientes', href: '/clientes', icon: Users },
 	{ name: 'Sincronización', href: '/sincronizacion', icon: RefreshCw },
 	{ name: 'Configuración', href: '/configuracion', icon: Settings },
-	{ name: 'Enunciado', href: '/enunciado', icon: FileText },
 ]
 
 export function Sidebar(): React.JSX.Element {
@@ -73,17 +71,6 @@ export function Sidebar(): React.JSX.Element {
 						)
 					})}
 				</nav>
-
-				<div className="p-3 bg-slate-50 rounded-xl border border-slate-100 mt-6">
-					<div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-						<span>Versión UI</span>
-						<span className="font-mono text-[11px] font-semibold text-slate-700">v7.1</span>
-					</div>
-					<div className="flex items-center justify-between text-xs text-slate-500">
-						<span>Motor de Estilos</span>
-						<span className="font-semibold text-indigo-600 text-[11px]">Tailwind v4</span>
-					</div>
-				</div>
 			</div>
 		</aside>
 	)

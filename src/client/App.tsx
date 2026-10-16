@@ -2,7 +2,6 @@ import * as React from 'react'
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
 
 import { AppLayout } from './components/layout/AppLayout'
-import { AssignmentPage } from './pages/AssignmentPage'
 import { CustomerDossierPage } from './pages/CustomerDossierPage'
 import { CustomersPage } from './pages/CustomersPage'
 import { DashboardPage } from './pages/DashboardPage'
@@ -21,7 +20,6 @@ export function App(): React.JSX.Element {
 					<Route path="sincronizacion" element={<SyncPage />} />
 					<Route path="sincronizacion/corridas/:id" element={<SyncRunDetailPage />} />
 					<Route path="configuracion" element={<ConfigPage />} />
-					<Route path="enunciado" element={<AssignmentPage />} />
 					<Route path="*" element={<Navigate to="/" replace />} />
 				</Route>
 			</Routes>
