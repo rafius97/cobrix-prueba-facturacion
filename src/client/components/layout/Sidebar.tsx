@@ -22,7 +22,7 @@ const NAVIGATION_ITEMS: readonly NavItem[] = [
 	{ name: 'Resumen', href: '/', icon: LayoutDashboard },
 	{ name: 'Clientes', href: '/clientes', icon: Users },
 	{ name: 'Sincronización', href: '/sincronizacion', icon: RefreshCw },
-	{ name: 'Configuración', href: '/configuracion', icon: Settings, badge: 'Fase 7.3' },
+	{ name: 'Configuración', href: '/configuracion', icon: Settings },
 	{ name: 'Enunciado', href: '/enunciado', icon: FileText },
 ]
 

@@ -4,6 +4,7 @@
  */
 
 import type {
+	ConfigResponseDto,
 	ContractItemDto,
 	CustomerDetailDto,
 	CustomerDossierResponseDto,
@@ -22,6 +23,9 @@ import type {
 	SyncRunSummaryDto,
 	SyncRunTriggerRequestDto,
 	SyncRunTypeDto,
+	TestConnectionRequestDto,
+	TestConnectionResponseDto,
+	UpdateConfigRequestDto,
 } from '../../shared/api-types'
 
 // ============================================================================
@@ -491,4 +495,173 @@ export async function fetchSyncRunDetail(runId: string): Promise<SyncRunDetailRe
 	const rawText = await response.text()
 	const parsed: JsonValue = JSON.parse(rawText)
 	return parseSyncRunDetailResponse(parsed)
+}
+
+// ============================================================================
+// Funciones de Configuración (/api/config/*)
+// ============================================================================
+
+function parseConfigResponse(val: JsonValue): ConfigResponseDto {
+	if (!isJsonObject(val)) {
+		throw new Error('Respuesta de configuración inválida del servidor')
+	}
+
+	const rawImportable = Array.isArray(val.importableStatuses) ? val.importableStatuses : []
+	const importableStatuses: string[] = []
+	for (const item of rawImportable) {
+		if (typeof item === 'string' && item.trim().length > 0) {
+			importableStatuses.push(item.trim())
+		}
+	}
+
+	const rawExcluded = Array.isArray(val.excludedDocumentTypes) ? val.excludedDocumentTypes : []
+	const excludedDocumentTypes: string[] = []
+	for (const item of rawExcluded) {
+		if (typeof item === 'string' && item.trim().length > 0) {
+			excludedDocumentTypes.push(item.trim())
+		}
+	}
+
+	const windowMonths =
+		typeof val.windowMonths === 'number' && (val.windowMonths === 3 || val.windowMonths === 6 || val.windowMonths === 9 || val.windowMonths === 12)
+			? val.windowMonths
+			: null
+
+	const maxRecentInstallments =
+		typeof val.maxRecentInstallments === 'number' && Number.isInteger(val.maxRecentInstallments) && val.maxRecentInstallments >= 1 && val.maxRecentInstallments <= 60
+			? val.maxRecentInstallments
+			: null
+
+	const graceDays =
+		typeof val.graceDays === 'number' && Number.isInteger(val.graceDays) && val.graceDays >= 0 && val.graceDays <= 60
+			? val.graceDays
+			: 0
+
+	const runInvoiceLimit =
+		typeof val.runInvoiceLimit === 'number' && Number.isInteger(val.runInvoiceLimit) && val.runInvoiceLimit >= 1
+			? val.runInvoiceLimit
+			: null
+
+	const runAmountLimitCents =
+		typeof val.runAmountLimitCents === 'number' && Number.isInteger(val.runAmountLimitCents) && val.runAmountLimitCents >= 0
+			? val.runAmountLimitCents
+			: null
+
+	return {
+		companyName: typeof val.companyName === 'string' ? val.companyName : '',
+		companyTaxId: typeof val.companyTaxId === 'string' ? val.companyTaxId : '',
+		companyEmail: typeof val.companyEmail === 'string' ? val.companyEmail : '',
+		apiUrl: typeof val.apiUrl === 'string' ? val.apiUrl : '',
+		apiUsername: typeof val.apiUsername === 'string' ? val.apiUsername : '',
+		importableStatuses,
+		windowMonths,
+		maxRecentInstallments,
+		graceDays,
+		runInvoiceLimit,
+		runAmountLimitCents,
+		excludedDocumentTypes,
+		autoRunHour: typeof val.autoRunHour === 'string' ? val.autoRunHour : '03:00',
+		autoRunActive: typeof val.autoRunActive === 'boolean' ? val.autoRunActive : false,
+	}
+}
+
+function parseTestConnectionResponse(val: JsonValue): TestConnectionResponseDto {
+	if (!isJsonObject(val)) {
+		throw new Error('Respuesta de prueba de conexión inválida del servidor')
+	}
+
+	const success = typeof val.success === 'boolean' ? val.success : false
+	const totalContracts = typeof val.totalContracts === 'number' ? val.totalContracts : undefined
+	const message = typeof val.message === 'string' ? val.message : ''
+
+	return {
+		success,
+		...(totalContracts !== undefined ? { totalContracts } : {}),
+		message,
+	}
+}
+
+/**
+ * Consulta la configuración actual del sistema Cobrix (GET /api/config).
+ * Nunca expone ni devuelve apiPassword.
+ */
+export async function fetchConfig(): Promise<ConfigResponseDto> {
+	const response = await fetch('/api/config', {
+		method: 'GET',
+		headers: {
+			Accept: 'application/json',
+		},
+	})
+
+	if (!response.ok) {
+		throw await parseErrorResponse(response)
+	}
+
+	const rawText = await response.text()
+	let parsed: JsonValue
+	try {
+		parsed = JSON.parse(rawText)
+	} catch {
+		throw new ApiClientError('Respuesta no válida del servidor (JSON inválido)', response.status)
+	}
+
+	return parseConfigResponse(parsed)
+}
+
+/**
+ * Actualiza parcialmente la configuración del sistema Cobrix (PUT /api/config).
+ * Si apiPassword se omite o es vacía, el servidor preserva la contraseña almacenada.
+ */
+export async function updateConfig(payload: UpdateConfigRequestDto): Promise<ConfigResponseDto> {
+	const response = await fetch('/api/config', {
+		method: 'PUT',
+		headers: {
+			'Content-Type': 'application/json',
+			Accept: 'application/json',
+		},
+		body: JSON.stringify(payload),
+	})
+
+	if (!response.ok) {
+		throw await parseErrorResponse(response)
+	}
+
+	const rawText = await response.text()
+	let parsed: JsonValue
+	try {
+		parsed = JSON.parse(rawText)
+	} catch {
+		throw new ApiClientError('Respuesta no válida del servidor (JSON inválido)', response.status)
+	}
+
+	return parseConfigResponse(parsed)
+}
+
+/**
+ * Prueba la conexión con el ISP externo (POST /api/config/test-connection).
+ * Admite credenciales provistas directamente sin persistirlas en la base de datos.
+ */
+export async function testIspConnection(payload: TestConnectionRequestDto): Promise<TestConnectionResponseDto> {
+	const response = await fetch('/api/config/test-connection', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Accept: 'application/json',
+		},
+		body: JSON.stringify(payload),
+	})
+
+	if (!response.ok) {
+		throw await parseErrorResponse(response)
+	}
+
+	const rawText = await response.text()
+	let parsed: JsonValue
+	try {
+		parsed = JSON.parse(rawText)
+	} catch {
+		throw new ApiClientError('Respuesta no válida del servidor (JSON inválido)', response.status)
+	}
+
+	return parseTestConnectionResponse(parsed)
 }
