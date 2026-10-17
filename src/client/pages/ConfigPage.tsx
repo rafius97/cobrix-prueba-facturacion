@@ -441,24 +441,28 @@ export function ConfigPage(): React.JSX.Element {
 
 	return (
 		<div className="space-y-8 pb-12">
-			{/* Encabezado */}
+			{/* Encabezado estilo Revora */}
 			<div>
-				<h2 className="text-2xl font-bold tracking-tight text-slate-900">Configuración</h2>
-				<p className="text-sm text-slate-500 mt-1">
-					Datos de la empresa y del administrador de facturas, con las mismas opciones del formulario «Configurar proveedor» de Cobrix.
+				<h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+					Configuración del Sistema
+				</h1>
+				<p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+					Parámetros de la empresa y del administrador de facturas, con las mismas opciones del formulario «Configurar proveedor» de Cobrix.
 				</p>
 			</div>
 
 			{/* ==================================================================== */}
 			{/* BLOQUE 1: DATOS DE LA EMPRESA */}
 			{/* ==================================================================== */}
-			<Card className="border-slate-200 shadow-xs">
-				<CardHeader>
-					<div className="flex items-center gap-2">
-						<Building2 className="w-5 h-5 text-indigo-600" />
-						<CardTitle>Empresa</CardTitle>
+			<Card className="rounded-2xl border-slate-100/90 shadow-[0_2px_14px_-4px_rgba(20,20,40,0.04)] overflow-hidden">
+				<CardHeader className="border-b border-slate-100/80 p-5 sm:p-6 pb-4">
+					<div className="flex items-center gap-2.5">
+						<div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold">
+							<Building2 className="w-4 h-4" />
+						</div>
+						<CardTitle className="text-lg font-bold text-slate-900">Empresa</CardTitle>
 					</div>
-					<CardDescription>
+					<CardDescription className="text-xs text-slate-400 mt-0.5 font-medium">
 						Identificación fiscal y correo electrónico de cobranza de la organización.
 					</CardDescription>
 				</CardHeader>
@@ -557,17 +561,17 @@ export function ConfigPage(): React.JSX.Element {
 					<CardFooter className="flex items-center justify-between border-t border-slate-100 pt-4">
 						<Button
 							type="submit"
-							className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto"
+							className="bg-slate-900 hover:bg-slate-800 text-white w-full sm:w-auto rounded-xl font-semibold shadow-xs min-h-[42px]"
 							disabled={isBusy}
 						>
 							{isSavingCompany ? (
 								<>
-									<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+									<Loader2 className="w-4 h-4 mr-2 animate-spin text-purple-400" />
 									Guardando...
 								</>
 							) : (
 								<>
-									<Save className="w-4 h-4 mr-2" />
+									<Save className="w-4 h-4 mr-2 text-purple-300" />
 									Guardar empresa
 								</>
 							)}
@@ -579,32 +583,34 @@ export function ConfigPage(): React.JSX.Element {
 			{/* ==================================================================== */}
 			{/* BLOQUE 2: ADMINISTRADOR DE FACTURAS (PROVEEDOR ISP Y REGLAS) */}
 			{/* ==================================================================== */}
-			<Card className="border-slate-200 shadow-xs">
-				<CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4">
+			<Card className="rounded-2xl border-slate-100/90 shadow-[0_2px_14px_-4px_rgba(20,20,40,0.04)] overflow-hidden">
+				<CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100/80 p-5 sm:p-6 pb-4">
 					<div>
-						<div className="flex items-center gap-2">
-							<Server className="w-5 h-5 text-indigo-600" />
-							<CardTitle>Administrador de facturas</CardTitle>
+						<div className="flex items-center gap-2.5">
+							<div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold">
+								<Server className="w-4 h-4" />
+							</div>
+							<CardTitle className="text-lg font-bold text-slate-900">Administrador de facturas</CardTitle>
 						</div>
-						<CardDescription className="mt-1">
+						<CardDescription className="text-xs text-slate-400 mt-1 font-medium">
 							Ajustes de conexión con la API externa, reglas de filtrado de cuotas y topes de importación.
 						</CardDescription>
 					</div>
 					<Button
 						type="button"
 						variant="outline"
-						className="border-slate-300 text-slate-700 hover:bg-slate-50 w-full sm:w-auto shrink-0"
+						className="border-slate-200 text-slate-700 hover:bg-slate-50 w-full sm:w-auto shrink-0 rounded-xl font-semibold shadow-2xs"
 						onClick={() => void handleTestConnection()}
 						disabled={isBusy}
 					>
 						{isTestingConnection ? (
 							<>
-								<Loader2 className="w-4 h-4 mr-2 animate-spin text-indigo-600" />
+								<Loader2 className="w-4 h-4 mr-2 animate-spin text-purple-600" />
 								Probando...
 							</>
 						) : (
 							<>
-								<Wifi className="w-4 h-4 mr-2 text-indigo-600" />
+								<Wifi className="w-4 h-4 mr-2 text-purple-600" />
 								Probar conexión
 							</>
 						)}
@@ -983,17 +989,17 @@ export function ConfigPage(): React.JSX.Element {
 					<CardFooter className="flex items-center justify-between border-t border-slate-100 pt-4">
 						<Button
 							type="submit"
-							className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto"
+							className="bg-slate-900 hover:bg-slate-800 text-white w-full sm:w-auto rounded-xl font-semibold shadow-xs min-h-[42px]"
 							disabled={isBusy}
 						>
 							{isSavingProvider ? (
 								<>
-									<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+									<Loader2 className="w-4 h-4 mr-2 animate-spin text-purple-400" />
 									Guardando...
 								</>
 							) : (
 								<>
-									<Save className="w-4 h-4 mr-2" />
+									<Save className="w-4 h-4 mr-2 text-purple-300" />
 									Guardar proveedor
 								</>
 							)}

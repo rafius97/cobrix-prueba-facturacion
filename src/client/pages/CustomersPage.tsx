@@ -148,26 +148,28 @@ export function CustomersPage(): React.JSX.Element {
 	const counterText = `${totalCount} ${totalCount === 1 ? 'cliente' : 'clientes'}`
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-8">
 			{/* Encabezado */}
 			<div>
-				<h1 className="text-2xl font-bold tracking-tight text-slate-900">Clientes</h1>
-				<p className="text-sm text-slate-500 mt-1">
-					Clientes creados por el sync del administrador. Un cliente por cédula o RIF: si el titular tiene varios contratos, se agrupan aquí.
+				<h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+					Directorio de Clientes
+				</h1>
+				<p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+					Clientes consolidados por cédula o RIF. Si un titular posee varios contratos, se unifican bajo el mismo expediente.
 				</p>
 			</div>
 
 			{/* Mensaje de error persistiendo datos previos si existen */}
 			{error !== null && data !== null && (
-				<div className="rounded-lg border border-red-200 bg-red-50 p-4 flex items-center justify-between gap-3 text-red-800 text-sm">
+				<div className="rounded-2xl border border-rose-200 bg-rose-50/80 p-4 flex items-center justify-between gap-3 text-rose-800 text-sm">
 					<div className="flex items-center gap-2">
-						<AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+						<AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
 						<span>{error}</span>
 					</div>
 					<Button
 						variant="outline"
 						size="sm"
-						className="border-red-300 text-red-800 hover:bg-red-100 gap-1.5 h-8 text-xs shrink-0"
+						className="border-rose-300 text-rose-800 hover:bg-rose-100 gap-1.5 h-8 text-xs shrink-0 rounded-xl"
 						onClick={() => void loadCustomers(lastAttemptedQueryRef.current)}
 					>
 						<RotateCcw className="w-3.5 h-3.5" />
@@ -178,18 +180,18 @@ export function CustomersPage(): React.JSX.Element {
 
 			{/* Mensaje de error bloqueante solo cuando no hay datos cargados */}
 			{error !== null && data === null && (
-				<Card className="border-red-200 bg-red-50 text-red-900">
+				<Card className="rounded-2xl border-rose-200 bg-rose-50 text-rose-900">
 					<CardHeader>
 						<div className="flex items-center gap-2">
-							<AlertCircle className="w-5 h-5 text-red-600" />
-							<CardTitle className="text-red-800">Error al consultar clientes</CardTitle>
+							<AlertCircle className="w-5 h-5 text-rose-600" />
+							<CardTitle className="text-rose-800 font-bold">Error al consultar clientes</CardTitle>
 						</div>
-						<CardDescription className="text-red-600 mt-1">{error}</CardDescription>
+						<CardDescription className="text-rose-600 mt-1">{error}</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<Button
 							variant="outline"
-							className="border-red-300 text-red-800 hover:bg-red-100 gap-2"
+							className="border-rose-300 text-rose-800 hover:bg-rose-100 gap-2 rounded-xl"
 							onClick={() => void loadCustomers(lastAttemptedQueryRef.current)}
 						>
 							<RotateCcw className="w-4 h-4" />
@@ -201,19 +203,19 @@ export function CustomersPage(): React.JSX.Element {
 
 			{/* Tarjeta principal con Buscador y Tabla: visible con datos o durante carga inicial sin error */}
 			{(data !== null || (isLoading && error === null)) && (
-				<Card className="shadow-xs overflow-hidden border-slate-200">
-				<CardHeader className="p-4 sm:p-6 border-b border-slate-100 bg-white">
+				<Card className="rounded-2xl border-slate-100/90 shadow-[0_2px_14px_-4px_rgba(20,20,40,0.04)] overflow-hidden">
+				<CardHeader className="p-4 sm:p-6 border-b border-slate-100/80 bg-white">
 					<div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-						{/* Formulario de búsqueda */}
+						{/* Formulario de búsqueda estilo Revora */}
 						<form onSubmit={handleSearchSubmit} className="flex items-center gap-2 max-w-md w-full">
 							<div className="relative flex-1">
-								<Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+								<Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
 								<Input
 									type="text"
-									placeholder="Nombre, cédula o RIF"
+									placeholder="Buscar por nombre, cédula o RIF..."
 									value={searchInput}
 									onChange={handleInputChange}
-									className="pl-9 pr-8"
+									className="pl-9 pr-8 rounded-xl bg-slate-50/70 border-slate-200/80 focus:bg-white text-xs sm:text-sm"
 								/>
 								{searchInput.length > 0 && (
 									<button
@@ -231,7 +233,7 @@ export function CustomersPage(): React.JSX.Element {
 									type="button"
 									variant="outline"
 									onClick={handleClearSearch}
-									className="gap-1 shrink-0 text-slate-600 hover:text-slate-900"
+									className="gap-1 shrink-0 text-slate-600 hover:text-slate-900 rounded-xl"
 									disabled={isLoading}
 									title="Restablecer listado completo"
 								>
@@ -241,9 +243,11 @@ export function CustomersPage(): React.JSX.Element {
 						</form>
 
 						{/* Contador de clientes */}
-						<div className="flex items-center gap-2 self-end sm:self-auto text-sm text-slate-600 font-medium">
-							<Users className="w-4 h-4 text-slate-400" />
-							<span className="font-semibold text-slate-800">{counterText}</span>
+						<div className="flex items-center gap-2 self-end sm:self-auto text-xs sm:text-sm text-slate-500 font-medium">
+							<div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+								<Users className="w-3.5 h-3.5" />
+							</div>
+							<span className="font-bold text-slate-800">{counterText}</span>
 						</div>
 					</div>
 				</CardHeader>
@@ -313,7 +317,7 @@ export function CustomersPage(): React.JSX.Element {
 							)}
 
 							{/* A. Vista de Tarjetas para Móviles (< sm / 640px) */}
-							<div className="sm:hidden divide-y divide-slate-100">
+							<div className="sm:hidden divide-y divide-purple-100/60">
 								{data.customers.map((customer: CustomerListItemDto) => {
 									const isJuridica = customer.personType === 'JURIDICA'
 									const isPaidUp = customer.oldestOpenDueDate === null
@@ -321,49 +325,54 @@ export function CustomersPage(): React.JSX.Element {
 									return (
 										<div
 											key={customer.customerId}
-											className="p-4 space-y-2.5 hover:bg-slate-50/50 transition-colors"
+											className="p-4 space-y-3 hover:bg-purple-50/20 transition-colors"
 										>
 											<div className="flex items-start justify-between gap-3">
-												<div className="min-w-0 flex-1">
-													<Link
-														to={`/clientes/${customer.customerId}`}
-														className="text-base font-semibold text-indigo-600 hover:text-indigo-800 transition-colors hover:underline block truncate"
-													>
-														{customer.name}
-													</Link>
-													<div className="flex items-center gap-2 mt-1 flex-wrap">
-														<span className="font-mono text-xs text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200/60">
-															{customer.originalDocument}
-														</span>
-														{isJuridica ? (
-															<Badge
-																variant="outline"
-																className="border-purple-200 bg-purple-50 text-purple-700 font-medium text-[11px]"
-															>
-																Jurídica
-															</Badge>
-														) : (
-															<Badge
-																variant="secondary"
-																className="bg-slate-100 text-slate-700 font-medium text-[11px]"
-															>
-																Natural
-															</Badge>
-														)}
+												<div className="flex items-center gap-2.5 min-w-0 flex-1">
+													<div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 text-purple-800 font-bold text-xs flex items-center justify-center shrink-0 border border-purple-200/50 shadow-2xs">
+														{customer.name.slice(0, 2).toUpperCase()}
+													</div>
+													<div className="min-w-0 flex-1">
+														<Link
+															to={`/clientes/${customer.customerId}`}
+															className="text-sm font-bold text-slate-900 hover:text-purple-700 transition-colors block truncate"
+														>
+															{customer.name}
+														</Link>
+														<div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+															<span className="font-mono text-[11px] text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200/50">
+																{customer.originalDocument}
+															</span>
+															{isJuridica ? (
+																<Badge
+																	variant="outline"
+																	className="border-purple-200 bg-purple-50 text-purple-700 font-semibold text-[10px]"
+																>
+																	Jurídica
+																</Badge>
+															) : (
+																<Badge
+																	variant="secondary"
+																	className="bg-slate-100 text-slate-700 font-semibold text-[10px]"
+																>
+																	Natural
+																</Badge>
+															)}
+														</div>
 													</div>
 												</div>
 
 												<div className="text-right shrink-0">
-													<div className="font-mono font-bold text-sm text-slate-900">
+													<div className="font-mono font-extrabold text-sm text-slate-900">
 														{formatUsd(customer.openBalanceCents)}
 													</div>
 													<div className="text-[11px] mt-0.5">
 														{isPaidUp ? (
-															<span className="text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded">
+															<span className="text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full">
 																Al día
 															</span>
 														) : (
-															<span className="text-slate-500 font-mono">
+															<span className="text-slate-400 font-mono text-[10px]">
 																Vence: {formatDate(customer.oldestOpenDueDate)}
 															</span>
 														)}
@@ -371,16 +380,15 @@ export function CustomersPage(): React.JSX.Element {
 												</div>
 											</div>
 
-											<div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
-												<span className="font-medium">
+											<div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-purple-50">
+												<span className="font-medium text-slate-600">
 													{customer.totalContractsCount} {customer.totalContractsCount === 1 ? 'contrato' : 'contratos'}
 												</span>
 												<div className="flex items-center gap-2 font-mono text-[11px]">
-													<span className="text-amber-700 font-medium">
+													<span className="text-amber-700 font-medium bg-amber-50 px-1.5 py-0.5 rounded-full">
 														{customer.openInvoicesCount} abiertas
 													</span>
-													<span className="text-slate-300">•</span>
-													<span className="text-emerald-700 font-medium">
+													<span className="text-emerald-700 font-medium bg-emerald-50 px-1.5 py-0.5 rounded-full">
 														{customer.paidInvoicesCount} pagadas
 													</span>
 												</div>
@@ -393,16 +401,16 @@ export function CustomersPage(): React.JSX.Element {
 							{/* B. Vista de Tabla para Tablet y Escritorio (>= sm / 640px) */}
 							<div className="hidden sm:block overflow-auto max-h-[calc(100vh-280px)]">
 								<table className="w-full text-left text-sm border-collapse min-w-[680px]">
-									<thead className="border-b border-slate-200 bg-slate-50 text-xs text-slate-500 font-semibold uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+									<thead className="border-b border-purple-100/60 bg-[#f9f8fe] text-[11px] text-slate-400 font-bold uppercase tracking-wider sticky top-0 z-10 shadow-2xs">
 										<tr>
-											<th className="py-3 px-6">Cliente</th>
-											<th className="py-3 px-4">Documento</th>
-											<th className="py-3 px-4">Tipo</th>
-											<th className="py-3 px-4 text-center">Contratos</th>
-											<th className="py-3 px-4 text-center">Abiertas</th>
-											<th className="py-3 px-4 text-center">Pagadas</th>
-											<th className="py-3 px-4 text-right">Deuda</th>
-											<th className="py-3 px-6 text-right">Vence la más antigua</th>
+											<th className="py-3.5 px-6">Cliente</th>
+											<th className="py-3.5 px-4">Documento</th>
+											<th className="py-3.5 px-4">Tipo</th>
+											<th className="py-3.5 px-4 text-center">Contratos</th>
+											<th className="py-3.5 px-4 text-center">Abiertas</th>
+											<th className="py-3.5 px-4 text-center">Pagadas</th>
+											<th className="py-3.5 px-4 text-right">Deuda</th>
+											<th className="py-3.5 px-6 text-right">Vence la más antigua</th>
 										</tr>
 									</thead>
 									<tbody className="divide-y divide-slate-100">
@@ -413,38 +421,43 @@ export function CustomersPage(): React.JSX.Element {
 											return (
 												<tr
 													key={customer.customerId}
-													className="hover:bg-indigo-50/30 transition-colors group"
+													className="hover:bg-purple-50/20 transition-colors group"
 												>
-													{/* 1. Cliente */}
-													<td className="py-3.5 px-6 font-medium">
-														<Link
-															to={`/clientes/${customer.customerId}`}
-															className="text-indigo-600 hover:text-indigo-800 font-semibold transition-colors hover:underline"
-														>
-															{customer.name}
-														</Link>
+													{/* 1. Cliente con Squircle Avatar */}
+													<td className="py-3 px-6">
+														<div className="flex items-center gap-3">
+															<div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 text-purple-800 font-bold text-xs flex items-center justify-center shrink-0 border border-purple-200/50 shadow-2xs">
+																{customer.name.slice(0, 2).toUpperCase()}
+															</div>
+															<Link
+																to={`/clientes/${customer.customerId}`}
+																className="text-slate-900 font-bold hover:text-purple-700 transition-colors"
+															>
+																{customer.name}
+															</Link>
+														</div>
 													</td>
 
 													{/* 2. Documento */}
-													<td className="py-3.5 px-4 font-mono text-xs text-slate-700">
-														<span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200/60">
+													<td className="py-3 px-4 font-mono text-xs text-slate-700">
+														<span className="bg-slate-100/80 px-2 py-0.5 rounded-lg border border-slate-200/50">
 															{customer.originalDocument}
 														</span>
 													</td>
 
 													{/* 3. Tipo */}
-													<td className="py-3.5 px-4">
+													<td className="py-3 px-4">
 														{isJuridica ? (
 															<Badge
 																variant="outline"
-																className="border-purple-200 bg-purple-50 text-purple-700 font-medium"
+																className="border-purple-200 bg-purple-50 text-purple-700 font-semibold"
 															>
 																Jurídica
 															</Badge>
 														) : (
 															<Badge
 																variant="secondary"
-																className="bg-slate-100 text-slate-700 font-medium"
+																className="bg-slate-100 text-slate-700 font-semibold"
 															>
 																Natural
 															</Badge>
@@ -452,33 +465,33 @@ export function CustomersPage(): React.JSX.Element {
 													</td>
 
 													{/* 4. Contratos */}
-													<td className="py-3.5 px-4 text-center font-mono text-slate-700">
+													<td className="py-3 px-4 text-center font-mono font-medium text-slate-700">
 														{customer.totalContractsCount}
 													</td>
 
 													{/* 5. Abiertas */}
-													<td className="py-3.5 px-4 text-center font-mono text-slate-700">
+													<td className="py-3 px-4 text-center font-mono font-medium text-slate-700">
 														{customer.openInvoicesCount}
 													</td>
 
 													{/* 6. Pagadas */}
-													<td className="py-3.5 px-4 text-center font-mono text-slate-700">
+													<td className="py-3 px-4 text-center font-mono font-medium text-slate-700">
 														{customer.paidInvoicesCount}
 													</td>
 
 													{/* 7. Deuda */}
-													<td className="py-3.5 px-4 text-right font-mono font-semibold text-slate-900">
+													<td className="py-3 px-4 text-right font-mono font-bold text-slate-900">
 														{formatUsd(customer.openBalanceCents)}
 													</td>
 
 													{/* 8. Vence la más antigua */}
-													<td className="py-3.5 px-6 text-right">
+													<td className="py-3 px-6 text-right">
 														{isPaidUp ? (
-															<span className="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+															<span className="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
 																Al día
 															</span>
 														) : (
-															<span className="font-mono text-xs text-slate-600">
+															<span className="font-mono text-xs text-slate-500 font-medium">
 																{formatDate(customer.oldestOpenDueDate)}
 															</span>
 														)}

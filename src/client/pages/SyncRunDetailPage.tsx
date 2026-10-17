@@ -451,25 +451,25 @@ export function SyncRunDetailPage(): React.JSX.Element {
 			)}
 
 			{/* 4. Encabezado principal y metadatos */}
-			<div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-xs space-y-4">
+			<div className="bg-white border border-slate-100/90 rounded-2xl p-5 sm:p-6 shadow-[0_2px_14px_-4px_rgba(20,20,40,0.04)] space-y-4">
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 					<div className="space-y-1">
 						<div className="flex items-center gap-2 flex-wrap">
-							<span className="text-xs font-semibold tracking-wider uppercase text-slate-500">
+							<span className="text-xs font-bold tracking-wider uppercase text-slate-400">
 								{isImport ? 'Importación de Deudas' : 'Actualización de Pagos'}
 							</span>
 							<Badge
 								className={
 									run.status === 'COMPLETED'
-										? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-										: 'bg-rose-100 text-rose-800 border-rose-300'
+										? 'bg-emerald-50 text-emerald-800 border-emerald-200 font-semibold'
+										: 'bg-rose-50 text-rose-800 border-rose-200 font-semibold'
 								}
 							>
 								{run.status === 'COMPLETED' ? 'COMPLETADA' : 'FALLIDA'}
 							</Badge>
 							<ExecutionModeBadge isSimulation={run.isSimulation} />
 						</div>
-						<h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+						<h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
 							{isImport ? 'Corrida de Importación' : 'Corrida de Actualización de Pagos'}
 						</h1>
 					</div>
@@ -481,9 +481,9 @@ export function SyncRunDetailPage(): React.JSX.Element {
 							onClick={() => {
 								void loadDetail(runId)
 							}}
-							className="text-xs text-slate-600 flex items-center gap-1.5"
+							className="text-xs text-slate-700 flex items-center gap-1.5 rounded-xl border-slate-200 font-semibold hover:bg-slate-50"
 						>
-							<RefreshCw className="w-3.5 h-3.5" />
+							<RefreshCw className="w-3.5 h-3.5 text-purple-600" />
 							<span>Actualizar vista</span>
 						</Button>
 					</div>
@@ -516,8 +516,8 @@ export function SyncRunDetailPage(): React.JSX.Element {
 			{!isImport && summary?.type === 'PAYMENT_UPDATE' && <PaymentSummaryCards summary={summary} />}
 
 			{/* 6. Tabla de Auditoría con Filtros */}
-			<Card className="border-slate-200 bg-white">
-				<CardHeader className="pb-3 border-b border-slate-100">
+			<Card className="border-slate-100/90 bg-white rounded-2xl shadow-[0_2px_14px_-4px_rgba(20,20,40,0.04)] overflow-hidden">
+				<CardHeader className="pb-3 border-b border-slate-100/80">
 					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 						<div>
 							<CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
@@ -622,7 +622,7 @@ export function SyncRunDetailPage(): React.JSX.Element {
 					) : (
 						<div className="overflow-x-auto">
 							<table className="w-full min-w-[640px] text-left text-xs text-slate-700 border-collapse">
-								<thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold text-[11px]">
+								<thead className="bg-[#f9f8fe] border-b border-purple-100/60 text-slate-400 uppercase tracking-wider font-bold text-[11px]">
 									<tr>
 										<th className="py-2.5 px-4">Contrato</th>
 										<th className="py-2.5 px-4">ID Deuda</th>

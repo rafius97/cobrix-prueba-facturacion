@@ -14,7 +14,7 @@ export function AppLayout(): React.JSX.Element {
 	}, [location.pathname])
 
 	return (
-		<div className="flex h-screen overflow-hidden bg-slate-50 text-slate-900">
+		<div className="flex h-screen overflow-hidden bg-[#f4f3f9] text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-900">
 			<Sidebar
 				mobileOpen={isMobileNavOpen}
 				onClose={() => setIsMobileNavOpen(false)}

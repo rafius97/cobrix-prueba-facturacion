@@ -247,12 +247,12 @@ export function SyncPage(): React.JSX.Element {
 
 	return (
 		<div className="space-y-8">
-			{/* Encabezado */}
+			{/* Encabezado estilo Revora */}
 			<div>
-				<h1 className="text-2xl font-bold tracking-tight text-slate-900">
+				<h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
 					Sincronización de Facturación
 				</h1>
-				<p className="text-sm text-slate-500 mt-1">
+				<p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
 					Gestión de cuotas y cobranzas con el administrador ISP. Ejecuta importaciones y conciliaciones reales o pruebas en modo simulación.
 				</p>
 			</div>
@@ -260,12 +260,12 @@ export function SyncPage(): React.JSX.Element {
 			{/* Banner de Feedback de Operación (Éxito, Error o Conflicto 409) */}
 			{operationFeedback !== null && (
 				<div
-					className={`rounded-xl border p-4 flex items-start justify-between gap-3 text-sm shadow-xs transition-all ${
+					className={`rounded-2xl border p-4.5 flex items-start justify-between gap-3 text-sm shadow-xs transition-all ${
 						operationFeedback.isConflict
-							? 'border-amber-300 bg-amber-50 text-amber-900'
+							? 'border-amber-200 bg-amber-50/90 text-amber-900'
 							: operationFeedback.isSuccess
-								? 'border-emerald-300 bg-emerald-50 text-emerald-900'
-								: 'border-red-300 bg-red-50 text-red-900'
+								? 'border-emerald-200 bg-emerald-50/90 text-emerald-900'
+								: 'border-rose-200 bg-rose-50/90 text-rose-900'
 					}`}
 				>
 					<div className="flex items-start gap-3">
@@ -274,55 +274,81 @@ export function SyncPage(): React.JSX.Element {
 						) : operationFeedback.isSuccess ? (
 							<CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
 						) : (
-							<XCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+							<XCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
 						)}
 						<div>
-							<h4 className="font-semibold">
+							<h4 className="font-bold">
 								{operationFeedback.isConflict
 									? 'Operación en curso'
 									: operationFeedback.isSuccess
 										? 'Operación completada'
 										: 'Error en la operación'}
 							</h4>
-							<p className="mt-0.5">{operationFeedback.message}</p>
+							<p className="mt-0.5 text-xs sm:text-sm font-medium opacity-90">{operationFeedback.message}</p>
 						</div>
 					</div>
 					<button
 						type="button"
 						onClick={() => setOperationFeedback(null)}
-						className="text-slate-400 hover:text-slate-600 p-1 text-xs font-semibold"
+						className="text-slate-400 hover:text-slate-600 p-1 text-xs font-bold rounded-lg cursor-pointer"
 					>
 						Cerrar
 					</button>
 				</div>
 			)}
 
-			{/* Tarjetas de Acciones Principales */}
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+			{/* Tarjetas de Acciones Principales (Inspiradas en Revora Pricing Cards) */}
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 				{/* 1. Tarjeta de Importación de Cuotas */}
-				<Card className="border-slate-200 bg-white shadow-xs flex flex-col justify-between">
-					<CardHeader>
-						<div className="flex items-center gap-2.5">
-							<div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+				<Card className="rounded-2xl border-slate-100/90 bg-white shadow-[0_2px_14px_-4px_rgba(20,20,40,0.04)] hover:shadow-md transition-all flex flex-col justify-between relative overflow-hidden group">
+					<div className="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 opacity-80" />
+					<CardHeader className="p-6 pb-4">
+						<div className="flex items-center justify-between gap-3">
+							<div className="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-100/80 text-indigo-700 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
 								<Download className="w-5 h-5" />
 							</div>
-							<div>
-								<CardTitle className="text-lg">Importar cuotas y deudas</CardTitle>
-								<CardDescription className="text-xs mt-0.5">
-									Consulta cuotas pendientes del ISP, normaliza clientes y crea facturas
-								</CardDescription>
+							<span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/60">
+								Fase 1 · Deudas
+							</span>
+						</div>
+						<div className="pt-3">
+							<CardTitle className="text-xl font-extrabold text-slate-900 tracking-tight">
+								Importar cuotas y deudas
+							</CardTitle>
+							<CardDescription className="text-xs text-slate-500 mt-1 font-medium">
+								Consulta cuotas pendientes del ISP, normaliza clientes y crea facturas
+							</CardDescription>
+						</div>
+
+						{/* Lista de características estilo Revora */}
+						<div className="pt-4 space-y-2.5 text-xs text-slate-600 font-medium">
+							<div className="flex items-center gap-2">
+								<div className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+									✓
+								</div>
+								<span>Inspección de contratos y cuotas pendientes en el ISP</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<div className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+									✓
+								</div>
+								<span>Normalización y agrupación automática por documento</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<div className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+									✓
+								</div>
+								<span>Idempotencia garantizada: omite duplicadas sin alterar balances</span>
 							</div>
 						</div>
-						<p className="text-sm text-slate-600 pt-3">
-							Inspecciona los contratos del ISP, agrupa los contratos por cédula/RIF y genera las facturas pendientes de Cobrix aplicando las reglas de divisas, límites y ventanas de cobro.
-						</p>
 					</CardHeader>
-					<CardContent className="pt-0">
-						<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-2 border-t border-slate-100">
+
+					<CardContent className="p-6 pt-0">
+						<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4 border-t border-slate-100">
 							<Button
 								type="button"
 								variant="outline"
-								className="w-full sm:w-auto justify-center min-h-[42px] gap-2 border-slate-300 text-slate-700 hover:bg-slate-50"
+								className="w-full sm:w-1/2 justify-center min-h-[44px] gap-2 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs font-semibold"
 								disabled={isOperating}
 								onClick={() => void handleExecuteSync('import_simulation', true)}
 							>
@@ -336,14 +362,14 @@ export function SyncPage(): React.JSX.Element {
 							<Button
 								type="button"
 								variant="default"
-								className="w-full sm:w-auto justify-center min-h-[42px] gap-2 bg-indigo-600 hover:bg-indigo-700 text-white"
+								className="w-full sm:w-1/2 justify-center min-h-[44px] gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-xs font-semibold"
 								disabled={isOperating}
 								onClick={() => handleRequestRealSync('import')}
 							>
 								{activeAction === 'import' ? (
 									<RefreshCw className="w-4 h-4 animate-spin text-white" />
 								) : (
-									<FileDown className="w-4 h-4" />
+									<FileDown className="w-4 h-4 text-purple-300" />
 								)}
 								<span>Importar</span>
 							</Button>
@@ -352,29 +378,55 @@ export function SyncPage(): React.JSX.Element {
 				</Card>
 
 				{/* 2. Tarjeta de Actualización de Pagos */}
-				<Card className="border-slate-200 bg-white shadow-xs flex flex-col justify-between">
-					<CardHeader>
-						<div className="flex items-center gap-2.5">
-							<div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+				<Card className="rounded-2xl border-slate-100/90 bg-white shadow-[0_2px_14px_-4px_rgba(20,20,40,0.04)] hover:shadow-md transition-all flex flex-col justify-between relative overflow-hidden group">
+					<div className="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-600 opacity-80" />
+					<CardHeader className="p-6 pb-4">
+						<div className="flex items-center justify-between gap-3">
+							<div className="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-100/80 text-emerald-700 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
 								<DollarSign className="w-5 h-5" />
 							</div>
-							<div>
-								<CardTitle className="text-lg">Actualizar estado de pagos</CardTitle>
-								<CardDescription className="text-xs mt-0.5">
-									Concilia facturas abiertas contra el libro de pagos del ISP
-								</CardDescription>
+							<span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+								Fase 2 · Cobranzas
+							</span>
+						</div>
+						<div className="pt-3">
+							<CardTitle className="text-xl font-extrabold text-slate-900 tracking-tight">
+								Actualizar estado de pagos
+							</CardTitle>
+							<CardDescription className="text-xs text-slate-500 mt-1 font-medium">
+								Concilia facturas abiertas contra el libro de pagos del ISP
+							</CardDescription>
+						</div>
+
+						{/* Lista de características estilo Revora */}
+						<div className="pt-4 space-y-2.5 text-xs text-slate-600 font-medium">
+							<div className="flex items-center gap-2">
+								<div className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+									✓
+								</div>
+								<span>Comprobación de pagos reales con recibos verificables</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<div className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+									✓
+								</div>
+								<span>Liquidación total o registro de abono parcial con saldo residual</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<div className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+									✓
+								</div>
+								<span>Detección de exenciones y protección contra inconsistencias</span>
 							</div>
 						</div>
-						<p className="text-sm text-slate-600 pt-3">
-							Examina los cobros efectivos registrados en el ISP, marca como pagadas las facturas con comprobante verificable y aplica abonos parciales ajustando el balance pendiente.
-						</p>
 					</CardHeader>
-					<CardContent className="pt-0">
-						<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-2 border-t border-slate-100">
+
+					<CardContent className="p-6 pt-0">
+						<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4 border-t border-slate-100">
 							<Button
 								type="button"
 								variant="outline"
-								className="w-full sm:w-auto justify-center min-h-[42px] gap-2 border-slate-300 text-slate-700 hover:bg-slate-50"
+								className="w-full sm:w-1/2 justify-center min-h-[44px] gap-2 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs font-semibold"
 								disabled={isOperating}
 								onClick={() => void handleExecuteSync('payment_simulation', true)}
 							>
@@ -388,14 +440,14 @@ export function SyncPage(): React.JSX.Element {
 							<Button
 								type="button"
 								variant="default"
-								className="w-full sm:w-auto justify-center min-h-[42px] gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+								className="w-full sm:w-1/2 justify-center min-h-[44px] gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-xs font-semibold"
 								disabled={isOperating}
 								onClick={() => handleRequestRealSync('payment')}
 							>
 								{activeAction === 'payment' ? (
 									<RefreshCw className="w-4 h-4 animate-spin text-white" />
 								) : (
-									<CheckCircle2 className="w-4 h-4" />
+									<CheckCircle2 className="w-4 h-4 text-emerald-400" />
 								)}
 								<span>Actualizar pagos</span>
 							</Button>
@@ -405,14 +457,18 @@ export function SyncPage(): React.JSX.Element {
 			</div>
 
 			{/* Sección de Historial de Corridas */}
-			<Card className="border-slate-200 bg-white shadow-xs overflow-hidden">
-				<CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+			<Card className="rounded-2xl border-slate-100/90 bg-white shadow-[0_2px_14px_-4px_rgba(20,20,40,0.04)] overflow-hidden">
+				<CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100/80 p-5 sm:p-6 pb-4">
 					<div>
-						<div className="flex items-center gap-2">
-							<History className="w-5 h-5 text-indigo-600" />
-							<CardTitle className="text-lg">Historial de Corridas</CardTitle>
+						<div className="flex items-center gap-2.5">
+							<div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold">
+								<History className="w-4 h-4" />
+							</div>
+							<CardTitle className="text-lg font-extrabold text-slate-900 tracking-tight">
+								Historial de Corridas
+							</CardTitle>
 						</div>
-						<CardDescription className="text-xs mt-1">
+						<CardDescription className="text-xs text-slate-400 mt-1 font-medium">
 							Registro cronológico de sincronizaciones y simulaciones ejecutadas
 						</CardDescription>
 					</div>
@@ -422,9 +478,9 @@ export function SyncPage(): React.JSX.Element {
 						size="sm"
 						onClick={() => void loadHistory()}
 						disabled={isLoadingHistory || isOperating}
-						className="gap-1.5 self-start sm:self-auto text-slate-600"
+						className="gap-2 self-start sm:self-auto text-slate-700 rounded-xl border-slate-200 bg-white hover:bg-slate-50 font-semibold shadow-2xs"
 					>
-						<RefreshCw className={`w-3.5 h-3.5 ${isLoadingHistory ? 'animate-spin' : ''}`} />
+						<RefreshCw className={`w-3.5 h-3.5 ${isLoadingHistory ? 'animate-spin text-purple-600' : 'text-slate-400'}`} />
 						<span>Actualizar historial</span>
 					</Button>
 				</CardHeader>
@@ -433,18 +489,18 @@ export function SyncPage(): React.JSX.Element {
 					{/* Error al consultar historial */}
 					{historyError !== null && (
 						<div className="p-6 text-center">
-							<div className="rounded-lg border border-red-200 bg-red-50 p-4 max-w-md mx-auto text-red-800 text-sm">
-								<div className="flex items-center justify-center gap-2 mb-2 font-semibold text-red-900">
-									<AlertCircle className="w-4 h-4" />
+							<div className="rounded-2xl border border-rose-200 bg-rose-50/80 p-5 max-w-md mx-auto text-rose-800 text-sm">
+								<div className="flex items-center justify-center gap-2 mb-2 font-bold text-rose-900">
+									<AlertCircle className="w-4 h-4 text-rose-600" />
 									<span>No se pudo cargar el historial</span>
 								</div>
-								<p className="text-xs text-red-700 mb-3">{historyError}</p>
+								<p className="text-xs text-rose-700 mb-3">{historyError}</p>
 								<Button
 									type="button"
 									variant="outline"
 									size="sm"
 									onClick={() => void loadHistory()}
-									className="border-red-300 text-red-900 hover:bg-red-100 gap-1.5"
+									className="border-rose-300 text-rose-900 hover:bg-rose-100 gap-1.5 rounded-xl font-semibold"
 								>
 									<RotateCcw className="w-3.5 h-3.5" />
 									<span>Reintentar</span>
@@ -457,7 +513,7 @@ export function SyncPage(): React.JSX.Element {
 					{isLoadingHistory && historyData === null && (
 						<div className="p-6 space-y-3 animate-pulse">
 							{[1, 2, 3, 4, 5].map(i => (
-								<div key={i} className="h-10 bg-slate-100 rounded-md w-full"></div>
+								<div key={i} className="h-10 bg-slate-100 rounded-xl w-full"></div>
 							))}
 						</div>
 					)}
@@ -465,13 +521,13 @@ export function SyncPage(): React.JSX.Element {
 					{/* Estado Vacío */}
 					{!isLoadingHistory && historyData !== null && historyData.runs.length === 0 && (
 						<div className="py-16 text-center px-4">
-							<div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+							<div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto mb-3">
 								<Clock className="w-6 h-6" />
 							</div>
-							<h3 className="text-base font-semibold text-slate-800">
+							<h3 className="text-base font-bold text-slate-800">
 								No hay corridas registradas
 							</h3>
-							<p className="text-sm text-slate-500 max-w-md mx-auto mt-1">
+							<p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto mt-1 font-medium">
 								Todavía no se ha realizado ninguna importación ni actualización de pagos. Utiliza las opciones superiores para iniciar una simulación o importación real.
 							</p>
 						</div>
@@ -481,15 +537,15 @@ export function SyncPage(): React.JSX.Element {
 					{historyData !== null && historyData.runs.length > 0 && (
 						<div className="overflow-x-auto">
 							<table className="w-full text-left text-sm border-collapse min-w-[640px]">
-								<thead className="border-b border-slate-100 bg-slate-50/75 text-xs text-slate-500 font-semibold uppercase tracking-wider">
+								<thead className="border-b border-purple-100/60 bg-[#f9f8fe] text-[11px] text-slate-400 font-bold uppercase tracking-wider">
 									<tr>
-										<th className="py-3 px-6">Tipo</th>
-										<th className="py-3 px-4">Modalidad</th>
-										<th className="py-3 px-4">Origen</th>
-										<th className="py-3 px-4">Inicio</th>
-										<th className="py-3 px-4">Estado</th>
-										<th className="py-3 px-6">Resultado</th>
-										<th className="py-3 px-6 text-right">Acción</th>
+										<th className="py-3.5 px-6">Tipo</th>
+										<th className="py-3.5 px-4">Modalidad</th>
+										<th className="py-3.5 px-4">Origen</th>
+										<th className="py-3.5 px-4">Inicio</th>
+										<th className="py-3.5 px-4">Estado</th>
+										<th className="py-3.5 px-6">Resultado</th>
+										<th className="py-3.5 px-6 text-right">Acción</th>
 									</tr>
 								</thead>
 								<tbody className="divide-y divide-slate-100">
@@ -501,18 +557,20 @@ export function SyncPage(): React.JSX.Element {
 										return (
 											<tr
 												key={run.id}
-												className="hover:bg-indigo-50/20 transition-colors group"
+												className="hover:bg-purple-50/20 transition-colors group"
 											>
 												{/* 1. Tipo */}
-												<td className="py-3.5 px-6 font-medium text-slate-900">
+												<td className="py-3.5 px-6 font-semibold text-slate-900">
 													<div className="flex items-center gap-2">
-														{isImport ? (
-															<Download className="w-4 h-4 text-indigo-600" />
-														) : (
-															<DollarSign className="w-4 h-4 text-emerald-600" />
-														)}
-														<span className="font-semibold">
-															{isImport ? 'Importación' : 'Actualización de pagadas'}
+														<div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isImport ? 'bg-indigo-50 text-indigo-700' : 'bg-emerald-50 text-emerald-700'}`}>
+															{isImport ? (
+																<Download className="w-3.5 h-3.5" />
+															) : (
+																<DollarSign className="w-3.5 h-3.5" />
+															)}
+														</div>
+														<span>
+															{isImport ? 'Importación' : 'Actualización de pagos'}
 														</span>
 													</div>
 												</td>
@@ -527,14 +585,14 @@ export function SyncPage(): React.JSX.Element {
 													{run.triggerType === 'SCHEDULED' ? (
 														<Badge
 															variant="secondary"
-															className="bg-indigo-50 text-indigo-700 border-indigo-200 font-medium"
+															className="bg-purple-50 text-purple-700 border-purple-100 font-semibold"
 														>
 															Automática
 														</Badge>
 													) : (
 														<Badge
 															variant="secondary"
-															className="bg-slate-100 text-slate-700 font-medium"
+															className="bg-slate-100 text-slate-700 font-semibold"
 														>
 															Manual
 														</Badge>
@@ -542,19 +600,19 @@ export function SyncPage(): React.JSX.Element {
 												</td>
 
 												{/* 4. Inicio */}
-												<td className="py-3.5 px-4 font-mono text-xs text-slate-600 whitespace-nowrap">
+												<td className="py-3.5 px-4 font-mono text-xs text-slate-500 whitespace-nowrap">
 													{formatDateTime(run.startedAt)}
 												</td>
 
 												{/* 4. Estado */}
 												<td className="py-3.5 px-4">
 													{isSuccess ? (
-														<Badge variant="success" className="gap-1">
+														<Badge variant="success" className="gap-1 font-semibold">
 															<CheckCircle2 className="w-3 h-3" />
 															<span>Completada</span>
 														</Badge>
 													) : (
-														<Badge variant="destructive" className="gap-1">
+														<Badge variant="destructive" className="gap-1 font-semibold">
 															<XCircle className="w-3 h-3" />
 															<span>Fallida</span>
 														</Badge>
@@ -563,16 +621,16 @@ export function SyncPage(): React.JSX.Element {
 
 												{/* 5. Resultado */}
 												<td className="py-3.5 px-6 text-xs text-slate-700 max-w-md">
-													<span className="line-clamp-2 leading-relaxed">
+													<span className="line-clamp-2 leading-relaxed font-medium">
 														{summaryText}
 													</span>
 												</td>
 
 												{/* 6. Acción / Enlace a Detalle */}
 												<td className="py-3.5 px-6 text-right">
-													<Button asChild variant="outline" size="sm" className="gap-1 text-xs">
+													<Button asChild variant="outline" size="sm" className="gap-1.5 text-xs rounded-xl font-semibold border-slate-200 bg-white hover:bg-slate-50">
 														<Link to={`/sincronizacion/corridas/${run.id}`}>
-															<Eye className="w-3.5 h-3.5 text-slate-500" />
+															<Eye className="w-3.5 h-3.5 text-purple-600" />
 															<span>Ver detalle</span>
 														</Link>
 													</Button>
@@ -594,29 +652,29 @@ export function SyncPage(): React.JSX.Element {
 					aria-modal="true"
 					aria-labelledby="confirm-dialog-title"
 					aria-describedby="confirm-dialog-desc"
-					className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150"
+					className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-xs animate-in fade-in duration-150"
 				>
 					<div
-						className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-md w-full p-6 space-y-4"
+						className="bg-white rounded-2xl border border-purple-100/80 shadow-2xl max-w-md w-full p-6 space-y-4"
 						onClick={e => e.stopPropagation()}
 					>
-						<div className="flex items-start gap-3">
+						<div className="flex items-start gap-3.5">
 							<div
-								className={`p-2.5 rounded-lg shrink-0 ${
+								className={`p-3 rounded-2xl shrink-0 ${
 									pendingConfirmation === 'import'
-										? 'bg-indigo-50 text-indigo-600'
-										: 'bg-emerald-50 text-emerald-600'
+										? 'bg-indigo-50 text-indigo-600 border border-indigo-100'
+										: 'bg-emerald-50 text-emerald-600 border border-emerald-100'
 								}`}
 							>
 								<AlertTriangle className="w-5 h-5 text-amber-500" />
 							</div>
 							<div className="space-y-1">
-								<h2 id="confirm-dialog-title" className="text-base font-semibold text-slate-900">
+								<h2 id="confirm-dialog-title" className="text-base font-extrabold text-slate-900 tracking-tight">
 									{pendingConfirmation === 'import'
 										? 'Confirmar importación real de cuotas'
 										: 'Confirmar actualización real de pagos'}
 								</h2>
-								<p id="confirm-dialog-desc" className="text-xs text-slate-600 leading-relaxed">
+								<p id="confirm-dialog-desc" className="text-xs text-slate-500 leading-relaxed font-medium">
 									{pendingConfirmation === 'import'
 										? 'Esta operación consultará la API del ISP y registrará o creará nuevos clientes, contratos y facturas en la base de datos de Cobrix. No se puede revertir de forma automática.'
 										: 'Esta operación consultará el libro de cobros del ISP y actualizará los estados a PAGADA y los saldos de facturas abiertas en la base de datos de Cobrix.'}
@@ -624,20 +682,20 @@ export function SyncPage(): React.JSX.Element {
 							</div>
 						</div>
 
-						<div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800 space-y-1">
-							<span className="font-semibold block">Acción con impacto en base de datos:</span>
-							<p>
+						<div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-3.5 text-xs text-amber-900 space-y-1">
+							<span className="font-bold block">Acción con impacto en base de datos:</span>
+							<p className="font-medium text-amber-800">
 								Si solo deseas comprobar qué registros calificarían sin modificar los datos de Cobrix,
 								cancela y utiliza la opción «Simular».
 							</p>
 						</div>
 
-						<div className="flex flex-col-reverse sm:flex-row sm:items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+						<div className="flex flex-col-reverse sm:flex-row sm:items-center justify-end gap-3 pt-3 border-t border-slate-100">
 							<Button
 								type="button"
 								variant="outline"
 								onClick={handleCancelConfirmation}
-								className="w-full sm:w-auto justify-center min-h-[42px] text-xs"
+								className="w-full sm:w-auto justify-center min-h-[42px] text-xs rounded-xl font-semibold border-slate-200"
 							>
 								Cancelar
 							</Button>
@@ -645,11 +703,7 @@ export function SyncPage(): React.JSX.Element {
 								type="button"
 								variant="default"
 								onClick={handleConfirmRealSync}
-								className={`w-full sm:w-auto justify-center min-h-[42px] text-xs text-white ${
-									pendingConfirmation === 'import'
-										? 'bg-indigo-600 hover:bg-indigo-700'
-										: 'bg-emerald-600 hover:bg-emerald-700'
-								}`}
+								className="w-full sm:w-auto justify-center min-h-[42px] text-xs text-white rounded-xl font-semibold bg-slate-900 hover:bg-slate-800 shadow-xs"
 							>
 								{pendingConfirmation === 'import' ? 'Confirmar importación' : 'Confirmar actualización'}
 							</Button>

@@ -213,59 +213,68 @@ export function CustomerDossierPage(): React.JSX.Element {
 			<div>
 				<Link
 					to="/clientes"
-					className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors"
+					className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-purple-700 transition-colors bg-white/80 hover:bg-white px-3 py-1.5 rounded-xl border border-purple-100/60 shadow-2xs"
 				>
-					<ArrowLeft className="w-4 h-4" />
-					<span>Volver a Clientes</span>
+					<ArrowLeft className="w-3.5 h-3.5" />
+					<span>Volver al Directorio</span>
 				</Link>
 			</div>
 
 			{/* Encabezado del cliente */}
 			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-				<div>
-					<div className="flex items-center gap-3 flex-wrap">
-						<h1 className="text-2xl font-bold tracking-tight text-slate-900">{customer.name}</h1>
-						{isNatural ? (
-							<Badge variant="secondary" className="bg-slate-100 text-slate-700 font-medium">
-								Persona natural
-							</Badge>
-						) : (
-							<Badge
-								variant="outline"
-								className="border-purple-200 bg-purple-50 text-purple-700 font-medium"
-							>
-								Persona jurídica
-							</Badge>
-						)}
+				<div className="flex items-center gap-3.5">
+					<div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100 text-purple-900 font-extrabold text-base flex items-center justify-center shrink-0 border border-purple-200/60 shadow-xs">
+						{customer.name.slice(0, 2).toUpperCase()}
 					</div>
-					<p className="text-sm text-slate-500 font-mono mt-1">
-						Documento: <span className="font-semibold text-slate-700">{customer.originalDocument}</span>
-					</p>
+					<div>
+						<div className="flex items-center gap-2.5 flex-wrap">
+							<h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+								{customer.name}
+							</h1>
+							{isNatural ? (
+								<Badge variant="secondary" className="bg-slate-100 text-slate-700 font-semibold text-xs">
+									Persona natural
+								</Badge>
+							) : (
+								<Badge
+									variant="outline"
+									className="border-purple-200 bg-purple-50 text-purple-700 font-semibold text-xs"
+								>
+									Persona jurídica
+								</Badge>
+							)}
+						</div>
+						<p className="text-xs text-slate-500 font-mono mt-1 font-medium">
+							Documento: <span className="font-bold text-slate-700 bg-slate-100/80 px-2 py-0.5 rounded-md border border-slate-200/50">{customer.originalDocument}</span>
+						</p>
+					</div>
 				</div>
 			</div>
 
-			{/* Resumen financiero (4 Tarjetas KPI) */}
-			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+			{/* Resumen financiero (4 Tarjetas KPI con Squircles estilo Revora) */}
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
 				{/* 1. Deuda abierta */}
-				<Card className="border-slate-200 shadow-xs">
-					<CardHeader className="pb-2">
-						<CardDescription className="text-xs uppercase font-semibold tracking-wider text-slate-500 flex items-center justify-between">
-							<span>Deuda abierta</span>
-							<DollarSign className="w-4 h-4 text-slate-400" />
-						</CardDescription>
-						<CardTitle className="text-2xl font-bold font-mono text-slate-900">
-							{formatUsd(metrics.openBalanceCents)}
+				<Card className="rounded-2xl border-purple-100/80 bg-gradient-to-br from-white via-white to-purple-50/30 shadow-[0_2px_14px_-4px_rgba(100,50,200,0.06)] hover:shadow-md transition-all group">
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-xs font-bold uppercase tracking-wider text-purple-700">
+							Deuda Abierta
 						</CardTitle>
+						<div className="w-8 h-8 rounded-xl bg-purple-100/80 border border-purple-200/60 flex items-center justify-center text-purple-700 shadow-2xs">
+							<DollarSign className="w-4 h-4" />
+						</div>
 					</CardHeader>
-					<CardContent className="pt-0">
-						<div className="text-xs">
+					<CardContent className="space-y-1">
+						<div className="text-3xl font-extrabold font-mono text-purple-950 tracking-tight">
+							{formatUsd(metrics.openBalanceCents)}
+						</div>
+						<div className="pt-1">
 							{isPaidUp ? (
-								<span className="inline-flex items-center font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+								<span className="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
 									Al día
 								</span>
 							) : (
-								<span className="text-slate-500">
-									Vence la más antigua: <strong className="font-mono text-slate-700">{formatDate(metrics.oldestOpenDueDate)}</strong>
+								<span className="text-[11px] text-slate-400 font-mono">
+									Vence: <strong className="text-slate-600 font-bold">{formatDate(metrics.oldestOpenDueDate)}</strong>
 								</span>
 							)}
 						</div>
@@ -273,56 +282,68 @@ export function CustomerDossierPage(): React.JSX.Element {
 				</Card>
 
 				{/* 2. Facturas abiertas */}
-				<Card className="border-slate-200 shadow-xs">
-					<CardHeader className="pb-2">
-						<CardDescription className="text-xs uppercase font-semibold tracking-wider text-slate-500 flex items-center justify-between">
-							<span>Facturas abiertas</span>
-							<Clock className="w-4 h-4 text-amber-500" />
-						</CardDescription>
-						<CardTitle className="text-2xl font-bold font-mono text-slate-900">
-							{metrics.openInvoicesCount}
+				<Card className="rounded-2xl border-slate-100/90 shadow-[0_2px_14px_-4px_rgba(20,20,40,0.04)] hover:shadow-md transition-all group">
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-400">
+							Facturas Abiertas
 						</CardTitle>
+						<div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shadow-2xs">
+							<Clock className="w-4 h-4" />
+						</div>
 					</CardHeader>
-					<CardContent className="pt-0">
-						<p className="text-xs text-slate-500">
-							{metrics.openInvoicesCount === 1 ? '1 factura pendiente de cobro' : `${metrics.openInvoicesCount} facturas pendientes de cobro`}
-						</p>
+					<CardContent className="space-y-1">
+						<div className="text-3xl font-extrabold font-mono text-slate-900 tracking-tight">
+							{metrics.openInvoicesCount}
+						</div>
+						<div className="pt-1">
+							<span className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/50">
+								{metrics.openInvoicesCount === 1 ? '1 pendiente' : `${metrics.openInvoicesCount} pendientes`}
+							</span>
+						</div>
 					</CardContent>
 				</Card>
 
 				{/* 3. Facturas pagadas */}
-				<Card className="border-slate-200 shadow-xs">
-					<CardHeader className="pb-2">
-						<CardDescription className="text-xs uppercase font-semibold tracking-wider text-slate-500 flex items-center justify-between">
-							<span>Facturas pagadas</span>
-							<CheckCircle2 className="w-4 h-4 text-emerald-500" />
-						</CardDescription>
-						<CardTitle className="text-2xl font-bold font-mono text-slate-900">
-							{metrics.paidInvoicesCount}
+				<Card className="rounded-2xl border-slate-100/90 shadow-[0_2px_14px_-4px_rgba(20,20,40,0.04)] hover:shadow-md transition-all group">
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-400">
+							Facturas Pagadas
 						</CardTitle>
+						<div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-2xs">
+							<CheckCircle2 className="w-4 h-4" />
+						</div>
 					</CardHeader>
-					<CardContent className="pt-0">
-						<p className="text-xs text-slate-500">
-							{metrics.paidInvoicesCount === 1 ? '1 factura pagada' : `${metrics.paidInvoicesCount} facturas pagadas`}
-						</p>
+					<CardContent className="space-y-1">
+						<div className="text-3xl font-extrabold font-mono text-slate-900 tracking-tight">
+							{metrics.paidInvoicesCount}
+						</div>
+						<div className="pt-1">
+							<span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/50">
+								{metrics.paidInvoicesCount === 1 ? '1 liquidada' : `${metrics.paidInvoicesCount} liquidadas`}
+							</span>
+						</div>
 					</CardContent>
 				</Card>
 
 				{/* 4. Contratos */}
-				<Card className="border-slate-200 shadow-xs">
-					<CardHeader className="pb-2">
-						<CardDescription className="text-xs uppercase font-semibold tracking-wider text-slate-500 flex items-center justify-between">
-							<span>Contratos</span>
-							<Layers className="w-4 h-4 text-indigo-500" />
-						</CardDescription>
-						<CardTitle className="text-2xl font-bold font-mono text-slate-900">
-							{metrics.totalContractsCount}
+				<Card className="rounded-2xl border-slate-100/90 shadow-[0_2px_14px_-4px_rgba(20,20,40,0.04)] hover:shadow-md transition-all group">
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-400">
+							Contratos
 						</CardTitle>
+						<div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-2xs">
+							<Layers className="w-4 h-4" />
+						</div>
 					</CardHeader>
-					<CardContent className="pt-0">
-						<p className="text-xs text-slate-500">
-							{metrics.totalContractsCount === 1 ? '1 contrato registrado' : `${metrics.totalContractsCount} contratos registrados`}
-						</p>
+					<CardContent className="space-y-1">
+						<div className="text-3xl font-extrabold font-mono text-slate-900 tracking-tight">
+							{metrics.totalContractsCount}
+						</div>
+						<div className="pt-1">
+							<span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200/50">
+								{metrics.totalContractsCount === 1 ? '1 servicio' : `${metrics.totalContractsCount} servicios`}
+							</span>
+						</div>
 					</CardContent>
 				</Card>
 			</div>
