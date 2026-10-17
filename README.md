@@ -99,7 +99,7 @@ Con la base de datos entregada y la fecha de prueba (`2026-10-13` fijada por def
 | **Reimportar (Idempotencia)** | 0 facturas nuevas. | 0 facturas creadas, 42 marcadas `ALREADY_IMPORTED`. | `test/cobrix/persistence.test.ts` |
 | **Agrupación de clientes** | Luis Gómez con 2 contratos; Elena Ruiz con ID `9000123`. | 1 cliente Luis Gómez con 2 contratos; ID `9000123`. | `test/cobrix/domain.test.ts` |
 | **Titulares excluidos** | Carlos Rojas, Rosa Díaz, Pedro León, Andrés Vargas, Laura Méndez y Jorge Castillo fuera. | Ninguno de estos titulares aparece en el directorio de clientes. | `test/cobrix/system-coherence.test.ts` |
-| **Actualizar pagadas tras cobros** | **8 facturas pagadas**, **34 abiertas por USD 955,00**. | **8 facturas pagadas**, **34 abiertas por USD 955,00**. | `test/cobrix/system-coherence.test.ts` |
+| **Actualizar pagadas tras cobros** | **8 facturas pagadas**, **34 abiertas por USD 955,00** (enunciado). | **8 facturas pagadas**, **34 abiertas por USD 950,00** ($5 de abono parcial de Luis Gómez). | `test/cobrix/system-coherence.test.ts` |
 | **Abono parcial** | Luis Gómez: cuota de 20 pagada, cuota siguiente abierta con abono. | Factura más antigua pagada; siguiente abierta y evento de abono parcial registrado. | `test/cobrix/payment.test.ts` |
 | **Anulación en caja** | Elena Ruiz: facturas siguen abiertas tras anular el cobro. | Facturas permanecen en estado `OPEN`. | `test/cobrix/payment.test.ts` |
 
@@ -109,7 +109,8 @@ Con la base de datos entregada y la fecha de prueba (`2026-10-13` fijada por def
 
 Para profundizar en el diseño, operación y decisiones del proyecto, consulta los documentos complementarios en `docs/`:
 
-- [**Guía de Desarrollo, Operación y Pruebas** (`docs/GUIA_DESARROLLO.md`)](docs/GUIA_DESARROLLO.md): Guía paso a paso para ejecutar el flujo de negocio, desarrollo con Vite, variables de entorno y troubleshooting.
+- [**Guía de Desarrollo, Operación y Pruebas** (`docs/GUIA_DESARROLLO.md`)](docs/GUIA_DESARROLLO.md): Guía paso a paso para ejecutar y validar el flujo de negocio y conciliación (§5), desarrollo con Vite, variables de entorno y troubleshooting.
+
 - [**Decisiones Técnicas y Nota de Entrega** (`docs/DECISIONES_TECNICAS.md`)](docs/DECISIONES_TECNICAS.md): Justificación técnica, qué quedó fuera, mejoras futuras y puntos diferenciales (sección 6 del enunciado).
 - [**Arquitectura del Sistema** (`docs/ARQUITECTURA.md`)](docs/ARQUITECTURA.md): Modelo por capas, esquema SQLite, catálogo de la API REST interna `/api/*`, concurrencia y seguridad.
 - [**Flujos de Negocio e Integración** (`docs/FLUJOS_DE_NEGOCIO.md`)](docs/FLUJOS_DE_NEGOCIO.md): Reglas de normalización, descarte defensivo, conciliación de pagos y scheduler diario.

@@ -51,6 +51,7 @@ src/cobrix/
 
 ## Documentación complementaria
 Para más detalles sobre los flujos y la arquitectura, consulta:
-- Arquitectura general: [`docs/ARQUITECTURA.md`](../../docs/ARQUITECTURA.md)
+- Guía de desarrollo y validación de pagos: [`docs/GUIA_DESARROLLO.md`](../../docs/GUIA_DESARROLLO.md#5-procedimiento-de-prueba-y-validación-del-ciclo-completo-de-pagos)
 - Flujos de negocio: [`docs/FLUJOS_DE_NEGOCIO.md`](../../docs/FLUJOS_DE_NEGOCIO.md)
+- Arquitectura general: [`docs/ARQUITECTURA.md`](../../docs/ARQUITECTURA.md)
 - Decisiones técnicas: [`docs/DECISIONES_TECNICAS.md`](../../docs/DECISIONES_TECNICAS.md)

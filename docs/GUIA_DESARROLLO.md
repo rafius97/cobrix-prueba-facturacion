@@ -117,50 +117,195 @@ npm run build
 
 ---
 
-## 5. Recorrido manual del flujo de negocio
+## 5. Procedimiento de prueba y validación del ciclo completo de pagos
 
-Para reproducir visualmente los criterios de aceptación de la prueba técnica:
+Esta sección describe el procedimiento paso a paso para reproducir de punta a punta el escenario de aceptación del enunciado (§5), aclarando la interacción entre la caja del ISP simulado y el motor de conciliación de Cobrix.
 
-### Paso 1: Estado inicial
-1. Inicia la aplicación con `npm start`.
-2. Ingresa al panel en `http://127.0.0.1:4300`.
-3. Ve a **Configuración** (`/configuracion`). Verifica que las credenciales del ISP estén configuradas (`http://127.0.0.1:4310/api/v1`, usuario `cobrix`, contraseña `cobrix-sandbox`). Pulsa **«Probar conexión»**; debe responder que la conexión es exitosa con 27 contratos disponibles.
+---
 
-### Paso 2: Simulación de importación
-1. Ve a **Sincronización** (`/sincronizacion`).
-2. Pulsa **«Simular importación»**.
-3. En el historial aparecerá una corrida con badge ámbar **Simulación** y origen **Manual**.
-4. Haz clic en la corrida: comprobarás que se evaluarían 42 cuotas, pero los contadores globales de clientes en el Dashboard permanecen en cero.
+### 5.1 Principio fundamental: Separación de responsabilidades
 
-### Paso 3: Importación real
-1. En **Sincronización**, pulsa **«Importar cuotas»**.
-2. Al finalizar, ve al **Dashboard** (`/`):
+Es indispensable distinguir entre los dos sistemas independientes que interactúan en la prueba:
+
+1. **El Administrador ISP (Simulador en puerto `4310`):**
+   - Es el sistema externo de facturación y cobranza del proveedor de internet.
+   - **La caja registradora reside en este sistema:** es aquí donde los clientes pagan sus cuotas en efectivo o transferencias, mediante los endpoints de caja `POST /__sim/pagar` y `POST /__sim/anular`.
+2. **Cobrix (Gestor de Cobranzas en puerto `4300`):**
+   - Es el sistema de cobranzas y conciliación contable.
+   - **Cobrix no registra cobros en el ISP ni crea pagos en la caja.** Su función es importar cuotas pendientes, consultar el libro de pagos del ISP y conciliar cuáles facturas ya fueron pagadas o abonadas.
+   - Si un operador pulsa «Actualizar pagos» en Cobrix antes de que se hayan registrado cobros en la caja del ISP, Cobrix reportará fielmente: **`0 facturas pagadas · 42 permanecen abiertas · Saldo USD 1.235,00`**, reflejando la realidad contable de que el dinero aún no ha ingresado al ISP.
+
+---
+
+### 5.2 Precondiciones y comprobación de salud
+
+Con el servidor corriendo (`npm start`), comprueba en una terminal que ambos servicios respondan correctamente:
+
+```bash
+# 1. Comprobar salud y fecha activa del simulador ISP
+curl -s http://127.0.0.1:4310/__sim/salud
+# Respuesta esperada: {"ok":true,"hoy":"2026-10-13","periodo":"2026-10"}
+
+# 2. Comprobar disponibilidad de la API de Cobrix
+curl -s http://127.0.0.1:4300/api/dashboard | head -c 120
+# Respuesta esperada: JSON con el objeto "metrics" y "company"
+```
+
+---
+
+### 5.3 Paso 1: Importación inicial de facturas en Cobrix
+
+Si la base de Cobrix está recién inicializada:
+1. Abre el panel web en `http://127.0.0.1:4300/sincronizacion`.
+2. Pulsa el botón azul **«Importar»** (o ejecuta `POST http://127.0.0.1:4300/api/sync/import` con `{ "isSimulation": false }`).
+3. Confirma la operación en el modal de advertencia.
+4. **Resultado esperado en el Dashboard (`/`):**
    - **Clientes importados:** 20.
+   - **Total contratos:** 21 (Luis Gómez posee 2 contratos).
    - **Facturas abiertas:** 42.
-   - **Monto por cobrar:** USD 1.235,00.
-3. Ve a **Clientes** (`/clientes`):
-   - Comprueba que Luis Gómez figura con 2 contratos agrupados.
-   - Comprueba que Elena Ruiz (`09000123`) tiene ID normalizado `9000123`.
-   - Comprueba que titulares excluidos (Carlos Rojas, Rosa Díaz, Pedro León, Andrés Vargas, Laura Méndez, Jorge Castillo) no aparecen en la lista.
+   - **Saldo por cobrar:** USD 1.235,00 (`123.500` centavos).
+   - **Facturas pagadas:** 0.
 
-### Paso 4: Registrar cobros en la caja del ISP
-Abre el Swagger del ISP en `http://127.0.0.1:4310/docs` y ve a la sección **Simulador**:
-1. `POST /__sim/pagar` con cuerpo `{"id_contrato": 900101}` (Ana Pérez: paga toda la deuda).
-2. `POST /__sim/pagar` con cuerpo `{"id_contrato": 900103, "monto": 25}` (Luis Gómez: abono parcial de $25 en cuota de $20).
-3. `POST /__sim/pagar` con cuerpo `{"id_contrato": 900104}` (Comercial El Faro: paga toda la deuda).
-4. `POST /__sim/pagar` con cuerpo `{"id_contrato": 900114, "monto": 70}` (Miguel Ángel Soto: abono para 2 cuotas).
-5. `POST /__sim/pagar` con cuerpo `{"id_contrato": 900113}` (Elena Ruiz: cobro temporal).
-6. `POST /__sim/anular` con el `id_factura` retornado en el paso anterior (Elena Ruiz: anulación del cobro).
+---
 
-### Paso 5: Actualizar facturas pagadas
-1. Regresa a Cobrix en `http://127.0.0.1:4300/sincronizacion`.
-2. Pulsa **«Actualizar pagadas»**.
-3. Revisa los resultados finales en el **Dashboard**:
-   - **Facturas pagadas:** 8.
-   - **Facturas abiertas:** 34.
-   - **Monto por cobrar:** USD 955,00.
-4. Abre el expediente de Luis Gómez (`/clientes/V11223344`):
-   - Verás su factura del periodo más antiguo pagada y la siguiente abierta como **Abono parcial** con su respectivo evento en el historial.
+### 5.4 Paso 2: Registrar cobros en la caja del ISP simulado
+
+Para simular la recaudación del día en la caja del ISP requerida por la sección 5 del enunciado, se deben utilizar los endpoints oficiales del simulador. Puedes ejecutarlos desde Swagger UI (`http://127.0.0.1:4310/docs` bajo la etiqueta **Simulador**) o ejecutando estos comandos `curl` en terminal:
+
+```bash
+# 1. Ana Pérez (contrato 900101): liquida toda su deuda (3 cuotas por USD 70,00)
+curl -s -X POST http://127.0.0.1:4310/__sim/pagar \
+  -H "Content-Type: application/json" \
+  -d '{"id_contrato": 900101}'
+# Respuesta esperada: HTTP 200 con {"id_factura": 8800118, "cuotas": [3 cuotas por $20, $25, $25]}
+
+# 2. Luis Gómez (contrato 900103): abona USD 25,00 sobre cuotas mensuales de $20,00
+curl -s -X POST http://127.0.0.1:4310/__sim/pagar \
+  -H "Content-Type: application/json" \
+  -d '{"id_contrato": 900103, "monto": 25}'
+# Respuesta esperada: HTTP 200 con {"id_factura": 8800119, "cuotas": [cuota 1 por $20, cuota 2 por $5]}
+
+# 3. Comercial El Faro, C.A. (contrato 900104): liquida toda su deuda (2 cuotas por USD 120,00)
+curl -s -X POST http://127.0.0.1:4310/__sim/pagar \
+  -H "Content-Type: application/json" \
+  -d '{"id_contrato": 900104}'
+# Respuesta esperada: HTTP 200 con {"id_factura": 8800120, "cuotas": [2 cuotas por $60 cada una]}
+
+# 4. Miguel Ángel Soto (contrato 900114): abona USD 70,00 para sus 2 cuotas más antiguas de $35,00
+curl -s -X POST http://127.0.0.1:4310/__sim/pagar \
+  -H "Content-Type: application/json" \
+  -d '{"id_contrato": 900114, "monto": 70}'
+# Respuesta esperada: HTTP 200 con {"id_factura": 8800121, "cuotas": [2 cuotas por $35 cada una]}
+
+# 5. Elena Ruiz (contrato 900113): registra cobro y lo anula inmediatamente
+# (Requiere `jq` o alternativamente `python3` para parsear la respuesta JSON de forma segura)
+
+# Paso 5a: Cobrar en caja y parsear el id_factura de forma robusta
+RESPUESTA=$(curl -s -X POST http://127.0.0.1:4310/__sim/pagar \
+  -H "Content-Type: application/json" \
+  -d '{"id_contrato": 900113}')
+
+# Extracción mediante jq (o alternativamente con python3: python3 -c "import sys, json; print(json.load(sys.stdin).get('id_factura', ''))")
+RECIBO=$(echo "$RESPUESTA" | jq -r '.id_factura // empty')
+
+# Paso 5b: Validar que el identificador no esté vacío y contenga exclusivamente dígitos
+if [ -n "$RECIBO" ] && [[ "$RECIBO" =~ ^[0-9]+$ ]]; then
+  curl -s -X POST http://127.0.0.1:4310/__sim/anular \
+    -H "Content-Type: application/json" \
+    -d "{\"id_factura\": $RECIBO}"
+  # Respuesta esperada: HTTP 200 con {"id_factura": 8800122, "detalle_anulacion": "ANULACION EXITOSA..."}
+else
+  echo "Error: el identificador de factura recibido ('$RECIBO') no es válido (debe contener solo dígitos). Respuesta original: $RESPUESTA"
+fi
+```
+
+---
+
+### 5.5 Paso 3: Simular conciliación («Simular actualización»)
+
+Antes de modificar el libro mayor de Cobrix, un operador puede previsualizar el impacto de los cobros:
+
+1. En el panel web (`http://127.0.0.1:4300/sincronizacion`), pulsa **«Simular actualización»** (o ejecuta `POST /api/sync/payments` con `{ "isSimulation": true }`).
+2. **Qué realiza el motor internamente:**
+   - **Sí consulta el libro de pagos del ISP:** Llama a `GET /api/v1/isp/pago_informacion` para leer los comprobantes emitidos.
+   - **No modifica registros de negocio en SQLite:** Las 42 facturas continúan en estado `OPEN`, los balances no se alteran y no se generan eventos en `customer_event`.
+   - **Registra auditoría:** Persiste una corrida en `sync_run` con `is_simulation = 1` y almacena el desglose cuota a cuota en `sync_run_detail`.
+3. **Qué observa el operador en la UI:**
+   - Aparece un banner de feedback: *«Simulación de actualización finalizada con éxito: 8 facturas pagadas • $280.00 • 1 abono parcial ($5.00) • 34 permanecen abiertas»*.
+   - Se agrega una fila en el Historial con badge ámbar **Simulación**.
+   - Al pulsar **«Ver detalle»**, se accede a `/sincronizacion/corridas/:id` donde se aprecia qué facturas cambiarían de estado sin haber alterado todavía la contabilidad real.
+
+---
+
+### 5.6 Paso 4: Conciliación real («Actualizar pagos»)
+
+Para asentar formalmente los pagos en Cobrix:
+
+1. En `/sincronizacion`, pulsa el botón verde **«Actualizar pagos»** (o ejecuta `POST /api/sync/payments` con `{ "isSimulation": false }`).
+2. Confirma la acción en el modal accesible de confirmación.
+3. **Acciones ejecutadas en base de datos bajo transacción atómica:**
+   - Las 8 facturas con pago completo pasan a `status = 'PAID'`, `balance_cents = 0`, registrando fecha de pago y número de recibo del ISP.
+   - La segunda cuota de Luis Gómez aplica el abono parcial: permanece `status = 'OPEN'`, pero su saldo disminuye de $20,00 a **$15,00**.
+   - Las facturas de Elena Ruiz permanecen en estado `OPEN` con su saldo original (comprobando que la anulación fue respetada).
+   - Se registran los eventos correspondientes en `customer_event`.
+   - Se inserta la corrida real en `sync_run` con `is_simulation = 0`.
+
+---
+
+### 5.7 Paso 5: Verificación de resultados e idempotencia
+
+1. **Revisar métricas en el Dashboard (`http://127.0.0.1:4300`):**
+   - **Facturas pagadas:** **8** (Ana Pérez 3, Comercial El Faro 2, Miguel Ángel Soto 2, Luis Gómez 1).
+   - **Facturas abiertas:** **34**.
+   - **Saldo por cobrar:** **USD 950,00** (ver detalle contable en §5.8).
+2. **Revisar expedientes de clientes (`/clientes`):**
+   - **Luis Gómez (`/clientes/V11223344`):** Presenta 1 factura pagada ($20,00) y su siguiente factura con saldo pendiente de **$15,00** y badge de abono parcial.
+   - **Elena Ruiz (`/clientes/9000123`):** Mantiene sus 2 facturas en estado abierto por USD 50,00.
+3. **Comprobar idempotencia:**
+   - Vuelve a `/sincronizacion` y pulsa nuevamente **«Actualizar pagos»**.
+   - El resultado será: **0 facturas pagadas, 0 abonos nuevos y 34 permanecen abiertas**. Los saldos y métricas se mantienen estrictamente intactos.
+
+---
+
+### 5.8 Nota técnica sobre la discrepancia de saldo (USD 955,00 frente a USD 950,00)
+
+Existe una diferencia aritmética documentada entre la redacción original de la sección 5 del enunciado y el saldo real calculado por el motor contable de Cobrix y verificado por las pruebas automatizadas:
+
+- **Cálculo literal del enunciado (§5):**
+  El enunciado afirma: *«8 facturas pagadas y 34 abiertas por USD 955,00»*.
+  El autor del enunciado calculó este valor deduciendo únicamente las 8 facturas que quedaron en estado `PAID`:
+  $$\text{Saldo inicial (\$1.235,00)} - \text{8 facturas canceladas (\$280,00)} = \mathbf{\$955,00}$$
+- **Cálculo contable real del sistema y pruebas:**
+  En el Caso 2, Luis Gómez abonó **$25,00** sobre cuotas de $20,00. El simulador y Cobrix aplican $20,00 para liquidar la primera factura y los **$5,00 restantes** como abono parcial a la siguiente cuota de $20,00, cuyo saldo pendiente real se reduce a **$15,00**.
+  Por consiguiente, el balance real exigible en el libro mayor de Cobrix es:
+  $$\text{\$1.235,00} - \text{\$280,00} - \text{\$5,00 (abono parcial)} = \mathbf{\$950,00}$$
+
+Esta exactitud contable al centavo está respaldada y validada en [`test/cobrix/system-coherence.test.ts`](../test/cobrix/system-coherence.test.ts) (`assert.equal(openBalanceAfterRealPay, 95000)`). Para el análisis técnico completo de esta discrepancia y la decisión técnica adoptada, consulta [Discrepancias Identificadas en el Enunciado (`docs/DISCREPANCIAS_ENUNCIADO.md`)](DISCREPANCIAS_ENUNCIADO.md).
+
+---
+
+
+### 5.9 Procedimiento de reinicio y consideraciones de base de datos
+
+Si necesitas repetir las pruebas desde un estado inicial, es fundamental distinguir los dos componentes de persistencia:
+
+#### A. Reinicio del Administrador ISP (Simulador en puerto 4310)
+El simulador del ISP incluye un endpoint oficial para restaurar su base de datos (`data/billing-api.sqlite`) al estado original de semilla sin necesidad de reiniciar el proceso:
+
+```bash
+curl -s -X POST http://127.0.0.1:4310/__sim/reiniciar
+# Respuesta esperada: {"ok":true,"mensaje":"Base de datos reiniciada a semilla"}
+```
+
+Este comando restablece los contratos, facturas y saldos de cuotas del ISP a sus valores iniciales entregados.
+
+#### B. Estado y consideraciones sobre la persistencia de Cobrix (`data/cobrix.sqlite`)
+- **Comportamiento de `npm test`:** La ejecución de `npm test` **no limpia ni reinicia** la base de datos de desarrollo (`data/cobrix.sqlite`). Cada suite de pruebas automatizadas crea sus propias bases de datos aisladas en directorios temporales (`/tmp` vía `mkdtempSync`), las cuales se destruyen al finalizar el test para garantizar que no existan efectos colaterales sobre los datos de desarrollo.
+- **Sin procedimiento de reinicio establecido:** A diferencia del simulador externo, Cobrix no expone un endpoint HTTP de reinicio ni se ha establecido en el proyecto un procedimiento seguro y verificado para restablecer o vaciar su base de datos de desarrollo.
+- **Riesgos de manipulación manual:**
+  1. **Bloqueos del motor:** La base de datos SQLite es gestionada por Cobrix mediante `node:sqlite` (`DatabaseSync`). Manipular el archivo `data/cobrix.sqlite` mientras el servidor está en ejecución puede provocar bloqueos (`EBUSY` / `SQLITE_BUSY`) o inconsistencias de lectura.
+  2. **Pérdida irreversible de auditoría:** `data/cobrix.sqlite` almacena la configuración operativa, las corridas de sincronización (`sync_run`, `sync_run_detail`) y la traza de eventos de clientes (`customer_event`), por lo que no debe alterarse ni suprimirse de forma indiscriminada.
+
 
 ---
 

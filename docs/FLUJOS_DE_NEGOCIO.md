@@ -26,10 +26,16 @@ El enunciado (`docs/ENUNCIADO.md` §5) define un ciclo completo de aceptación b
 | **2. Importar real** | Botón «Importar cuotas» o `POST /api/sync/import` con `isSimulation: false`. | **20 clientes creados**, **42 facturas abiertas** por un monto total de **USD 1.235,00**. Exclusiones: 9 cuotas por estado del contrato, 1 contrato por moneda incoherente (Jorge Castillo), 1 cuota por saldo residual. | `/` (Dashboard), `/clientes` y `/sincronizacion`. |
 | **3. Reimportar** | Segunda importación real. | **0 facturas nuevas**, 42 facturas marcadas como `ALREADY_IMPORTED`. | Detalle de corrida (`/sincronizacion/corridas/:id`). |
 | **4. Pagar en caja ISP** | Operaciones en el simulador del ISP (`http://127.0.0.1:4310/docs`):<br>• Ana Pérez (900101): paga toda la deuda.<br>• Luis Gómez (900103): abono de $25 (cuotas de 20).<br>• Comercial El Faro (900104): paga toda la deuda.<br>• Miguel Ángel Soto (900114): abono de $70.<br>• Elena Ruiz (900113): pagar y luego anular cobro. | El simulador del ISP registra facturas de cobro en su libro de cuotas y pagos. Cobrix permanece sin cambios hasta sincronizar. | `data/billing-api.sqlite` / Swagger. |
-| **5. Actualizar pagadas** | Botón «Actualizar pagadas» o `POST /api/sync/payments`. | **8 facturas marcadas como pagadas**, quedando **34 facturas abiertas por USD 955,00**.<br>• Ana Pérez: 3 pagadas.<br>• Luis Gómez: 1 pagada, 1 abierta como abono parcial.<br>• Comercial El Faro: 2 pagadas.<br>• Miguel Ángel Soto: 2 cuotas más viejas pagadas.<br>• Elena Ruiz: facturas siguen abiertas (anulación). | Dashboard, `/clientes` y `/sincronizacion`. |
-| **6. Reintentar pagos** | Segunda actualización de pagos. | 0 cambios adicionales; las 8 facturas continúan pagadas y las 34 abiertas. | Historial de sincronización. |
+| **5. Actualizar pagadas** | Botón «Actualizar pagadas» o `POST /api/sync/payments`. | **8 facturas marcadas como pagadas**, quedando **34 facturas abiertas**.<br>• Saldo contable en Cobrix: **USD 950,00** (ver nota al pie).<br>• Ana Pérez: 3 pagadas.<br>• Luis Gómez: 1 pagada, 1 abierta con abono parcial.<br>• Comercial El Faro: 2 pagadas.<br>• Miguel Ángel Soto: 2 cuotas más viejas pagadas.<br>• Elena Ruiz: facturas siguen abiertas (anulación). | Dashboard, `/clientes` y `/sincronizacion`. |
+| **6. Reintentar pagos** | Segunda actualización de pagos. | 0 cambios adicionales; las 8 facturas continúan pagadas y las 34 abiertas con USD 950,00. | Historial de sincronización. |
 
-*Verificado en código y pruebas:* Todo este flujo está automatizado de punta a punta en `test/cobrix/system-coherence.test.ts`.
+> [!NOTE]
+> **Discrepancia contable documentada (§5 frente al motor contable):**
+> El enunciado (§5) cita *«USD 955,00»*, mientras que el cálculo contable derivado de la amortización del abono parcial de Luis Gómez resulta en **USD 950,00**. Para un desglose detallado de la discrepancia y la decisión técnica adoptada, consulta [Discrepancias Identificadas en el Enunciado (`docs/DISCREPANCIAS_ENUNCIADO.md`)](DISCREPANCIAS_ENUNCIADO.md).
+
+*Verificado en código y pruebas:* Todo este flujo está automatizado de punta a punta en `test/cobrix/system-coherence.test.ts`. Para la guía de ejecución paso a paso con comandos `curl` reproducibles, consulta la [Guía de Desarrollo (`docs/GUIA_DESARROLLO.md#5-procedimiento-de-prueba-y-validación-del-ciclo-completo-de-pagos`)](GUIA_DESARROLLO.md#5-procedimiento-de-prueba-y-validación-del-ciclo-completo-de-pagos).
+
+
 
 ---
 
