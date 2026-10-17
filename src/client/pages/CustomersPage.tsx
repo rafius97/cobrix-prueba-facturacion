@@ -299,9 +299,9 @@ export function CustomersPage(): React.JSX.Element {
 						</div>
 					)}
 
-					{/* 4. Tabla de Clientes */}
+					{/* 4. Lista de Clientes: Vista dual (Tarjetas en móvil, Tabla en tablet/escritorio) */}
 					{data !== null && data.customers.length > 0 && (
-						<div className="overflow-auto relative max-h-[calc(100vh-280px)]">
+						<div className="relative">
 							{/* Indicador sutil de recarga durante búsquedas secundarias */}
 							{isLoading && (
 								<div className="absolute inset-0 bg-white/60 backdrop-blur-2xs flex items-center justify-center z-20 transition-opacity">
@@ -312,102 +312,183 @@ export function CustomersPage(): React.JSX.Element {
 								</div>
 							)}
 
-							<table className="w-full text-left text-sm border-collapse">
-								<thead className="border-b border-slate-200 bg-slate-50 text-xs text-slate-500 font-semibold uppercase tracking-wider sticky top-0 z-10 shadow-xs">
-									<tr>
-										<th className="py-3 px-6">Cliente</th>
-										<th className="py-3 px-4">Documento</th>
-										<th className="py-3 px-4">Tipo</th>
-										<th className="py-3 px-4 text-center">Contratos</th>
-										<th className="py-3 px-4 text-center">Abiertas</th>
-										<th className="py-3 px-4 text-center">Pagadas</th>
-										<th className="py-3 px-4 text-right">Deuda</th>
-										<th className="py-3 px-6 text-right">Vence la más antigua</th>
-									</tr>
-								</thead>
-								<tbody className="divide-y divide-slate-100">
-									{data.customers.map((customer: CustomerListItemDto) => {
-										const isJuridica = customer.personType === 'JURIDICA'
-										const isPaidUp = customer.oldestOpenDueDate === null
+							{/* A. Vista de Tarjetas para Móviles (< sm / 640px) */}
+							<div className="sm:hidden divide-y divide-slate-100">
+								{data.customers.map((customer: CustomerListItemDto) => {
+									const isJuridica = customer.personType === 'JURIDICA'
+									const isPaidUp = customer.oldestOpenDueDate === null
 
-										return (
-											<tr
-												key={customer.customerId}
-												className="hover:bg-indigo-50/30 transition-colors group"
-											>
-												{/* 1. Cliente */}
-												<td className="py-3.5 px-6 font-medium">
+									return (
+										<div
+											key={customer.customerId}
+											className="p-4 space-y-2.5 hover:bg-slate-50/50 transition-colors"
+										>
+											<div className="flex items-start justify-between gap-3">
+												<div className="min-w-0 flex-1">
 													<Link
 														to={`/clientes/${customer.customerId}`}
-														className="text-indigo-600 hover:text-indigo-800 font-semibold transition-colors hover:underline"
+														className="text-base font-semibold text-indigo-600 hover:text-indigo-800 transition-colors hover:underline block truncate"
 													>
 														{customer.name}
 													</Link>
-												</td>
+													<div className="flex items-center gap-2 mt-1 flex-wrap">
+														<span className="font-mono text-xs text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200/60">
+															{customer.originalDocument}
+														</span>
+														{isJuridica ? (
+															<Badge
+																variant="outline"
+																className="border-purple-200 bg-purple-50 text-purple-700 font-medium text-[11px]"
+															>
+																Jurídica
+															</Badge>
+														) : (
+															<Badge
+																variant="secondary"
+																className="bg-slate-100 text-slate-700 font-medium text-[11px]"
+															>
+																Natural
+															</Badge>
+														)}
+													</div>
+												</div>
 
-												{/* 2. Documento */}
-												<td className="py-3.5 px-4 font-mono text-xs text-slate-700">
-													<span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200/60">
-														{customer.originalDocument}
+												<div className="text-right shrink-0">
+													<div className="font-mono font-bold text-sm text-slate-900">
+														{formatUsd(customer.openBalanceCents)}
+													</div>
+													<div className="text-[11px] mt-0.5">
+														{isPaidUp ? (
+															<span className="text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded">
+																Al día
+															</span>
+														) : (
+															<span className="text-slate-500 font-mono">
+																Vence: {formatDate(customer.oldestOpenDueDate)}
+															</span>
+														)}
+													</div>
+												</div>
+											</div>
+
+											<div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
+												<span className="font-medium">
+													{customer.totalContractsCount} {customer.totalContractsCount === 1 ? 'contrato' : 'contratos'}
+												</span>
+												<div className="flex items-center gap-2 font-mono text-[11px]">
+													<span className="text-amber-700 font-medium">
+														{customer.openInvoicesCount} abiertas
 													</span>
-												</td>
+													<span className="text-slate-300">•</span>
+													<span className="text-emerald-700 font-medium">
+														{customer.paidInvoicesCount} pagadas
+													</span>
+												</div>
+											</div>
+										</div>
+									)
+								})}
+							</div>
 
-												{/* 3. Tipo */}
-												<td className="py-3.5 px-4">
-													{isJuridica ? (
-														<Badge
-															variant="outline"
-															className="border-purple-200 bg-purple-50 text-purple-700 font-medium"
+							{/* B. Vista de Tabla para Tablet y Escritorio (>= sm / 640px) */}
+							<div className="hidden sm:block overflow-auto max-h-[calc(100vh-280px)]">
+								<table className="w-full text-left text-sm border-collapse min-w-[680px]">
+									<thead className="border-b border-slate-200 bg-slate-50 text-xs text-slate-500 font-semibold uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+										<tr>
+											<th className="py-3 px-6">Cliente</th>
+											<th className="py-3 px-4">Documento</th>
+											<th className="py-3 px-4">Tipo</th>
+											<th className="py-3 px-4 text-center">Contratos</th>
+											<th className="py-3 px-4 text-center">Abiertas</th>
+											<th className="py-3 px-4 text-center">Pagadas</th>
+											<th className="py-3 px-4 text-right">Deuda</th>
+											<th className="py-3 px-6 text-right">Vence la más antigua</th>
+										</tr>
+									</thead>
+									<tbody className="divide-y divide-slate-100">
+										{data.customers.map((customer: CustomerListItemDto) => {
+											const isJuridica = customer.personType === 'JURIDICA'
+											const isPaidUp = customer.oldestOpenDueDate === null
+
+											return (
+												<tr
+													key={customer.customerId}
+													className="hover:bg-indigo-50/30 transition-colors group"
+												>
+													{/* 1. Cliente */}
+													<td className="py-3.5 px-6 font-medium">
+														<Link
+															to={`/clientes/${customer.customerId}`}
+															className="text-indigo-600 hover:text-indigo-800 font-semibold transition-colors hover:underline"
 														>
-															Jurídica
-														</Badge>
-													) : (
-														<Badge
-															variant="secondary"
-															className="bg-slate-100 text-slate-700 font-medium"
-														>
-															Natural
-														</Badge>
-													)}
-												</td>
+															{customer.name}
+														</Link>
+													</td>
 
-												{/* 4. Contratos */}
-												<td className="py-3.5 px-4 text-center font-mono text-slate-700">
-													{customer.totalContractsCount}
-												</td>
-
-												{/* 5. Abiertas */}
-												<td className="py-3.5 px-4 text-center font-mono text-slate-700">
-													{customer.openInvoicesCount}
-												</td>
-
-												{/* 6. Pagadas */}
-												<td className="py-3.5 px-4 text-center font-mono text-slate-700">
-													{customer.paidInvoicesCount}
-												</td>
-
-												{/* 7. Deuda */}
-												<td className="py-3.5 px-4 text-right font-mono font-semibold text-slate-900">
-													{formatUsd(customer.openBalanceCents)}
-												</td>
-
-												{/* 8. Vence la más antigua */}
-												<td className="py-3.5 px-6 text-right">
-													{isPaidUp ? (
-														<span className="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-															Al día
+													{/* 2. Documento */}
+													<td className="py-3.5 px-4 font-mono text-xs text-slate-700">
+														<span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200/60">
+															{customer.originalDocument}
 														</span>
-													) : (
-														<span className="font-mono text-xs text-slate-600">
-															{formatDate(customer.oldestOpenDueDate)}
-														</span>
-													)}
-												</td>
-											</tr>
-										)
-									})}
-								</tbody>
-							</table>
+													</td>
+
+													{/* 3. Tipo */}
+													<td className="py-3.5 px-4">
+														{isJuridica ? (
+															<Badge
+																variant="outline"
+																className="border-purple-200 bg-purple-50 text-purple-700 font-medium"
+															>
+																Jurídica
+															</Badge>
+														) : (
+															<Badge
+																variant="secondary"
+																className="bg-slate-100 text-slate-700 font-medium"
+															>
+																Natural
+															</Badge>
+														)}
+													</td>
+
+													{/* 4. Contratos */}
+													<td className="py-3.5 px-4 text-center font-mono text-slate-700">
+														{customer.totalContractsCount}
+													</td>
+
+													{/* 5. Abiertas */}
+													<td className="py-3.5 px-4 text-center font-mono text-slate-700">
+														{customer.openInvoicesCount}
+													</td>
+
+													{/* 6. Pagadas */}
+													<td className="py-3.5 px-4 text-center font-mono text-slate-700">
+														{customer.paidInvoicesCount}
+													</td>
+
+													{/* 7. Deuda */}
+													<td className="py-3.5 px-4 text-right font-mono font-semibold text-slate-900">
+														{formatUsd(customer.openBalanceCents)}
+													</td>
+
+													{/* 8. Vence la más antigua */}
+													<td className="py-3.5 px-6 text-right">
+														{isPaidUp ? (
+															<span className="inline-flex items-center text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+																Al día
+															</span>
+														) : (
+															<span className="font-mono text-xs text-slate-600">
+																{formatDate(customer.oldestOpenDueDate)}
+															</span>
+														)}
+													</td>
+												</tr>
+											)
+										})}
+									</tbody>
+								</table>
+							</div>
 						</div>
 					)}
 				</CardContent>

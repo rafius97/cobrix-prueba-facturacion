@@ -29,7 +29,7 @@ import {
 	XCircle,
 } from 'lucide-react'
 
-import { Badge } from '../components/ui/badge'
+import { Badge, ExecutionModeBadge } from '../components/ui/badge'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { ApiClientError, fetchSyncRunDetail } from '../lib/api'
@@ -467,15 +467,7 @@ export function SyncRunDetailPage(): React.JSX.Element {
 							>
 								{run.status === 'COMPLETED' ? 'COMPLETADA' : 'FALLIDA'}
 							</Badge>
-							<Badge
-								className={
-									run.isSimulation
-										? 'bg-purple-100 text-purple-800 border-purple-300'
-										: 'bg-blue-100 text-blue-800 border-blue-300'
-								}
-							>
-								{run.isSimulation ? 'SIMULACIÓN' : 'EJECUCIÓN REAL'}
-							</Badge>
+							<ExecutionModeBadge isSimulation={run.isSimulation} />
 						</div>
 						<h1 className="text-2xl font-bold text-slate-900 tracking-tight">
 							{isImport ? 'Corrida de Importación' : 'Corrida de Actualización de Pagos'}
@@ -552,7 +544,7 @@ export function SyncRunDetailPage(): React.JSX.Element {
 							</div>
 
 							{/* Selector de categoría */}
-							<div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-md text-xs">
+							<div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-md text-xs overflow-x-auto max-w-full">
 								<button
 									type="button"
 									onClick={() => setCategoryFilter('ALL')}
@@ -629,7 +621,7 @@ export function SyncRunDetailPage(): React.JSX.Element {
 						</div>
 					) : (
 						<div className="overflow-x-auto">
-							<table className="w-full text-left text-xs text-slate-700 border-collapse">
+							<table className="w-full min-w-[640px] text-left text-xs text-slate-700 border-collapse">
 								<thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold text-[11px]">
 									<tr>
 										<th className="py-2.5 px-4">Contrato</th>

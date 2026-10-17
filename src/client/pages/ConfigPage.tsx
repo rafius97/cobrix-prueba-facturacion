@@ -557,7 +557,7 @@ export function ConfigPage(): React.JSX.Element {
 					<CardFooter className="flex items-center justify-between border-t border-slate-100 pt-4">
 						<Button
 							type="submit"
-							className="bg-indigo-600 hover:bg-indigo-700 text-white"
+							className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto"
 							disabled={isBusy}
 						>
 							{isSavingCompany ? (
@@ -580,7 +580,7 @@ export function ConfigPage(): React.JSX.Element {
 			{/* BLOQUE 2: ADMINISTRADOR DE FACTURAS (PROVEEDOR ISP Y REGLAS) */}
 			{/* ==================================================================== */}
 			<Card className="border-slate-200 shadow-xs">
-				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+				<CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4">
 					<div>
 						<div className="flex items-center gap-2">
 							<Server className="w-5 h-5 text-indigo-600" />
@@ -593,7 +593,7 @@ export function ConfigPage(): React.JSX.Element {
 					<Button
 						type="button"
 						variant="outline"
-						className="border-slate-300 text-slate-700 hover:bg-slate-50"
+						className="border-slate-300 text-slate-700 hover:bg-slate-50 w-full sm:w-auto shrink-0"
 						onClick={() => void handleTestConnection()}
 						disabled={isBusy}
 					>
@@ -983,7 +983,7 @@ export function ConfigPage(): React.JSX.Element {
 					<CardFooter className="flex items-center justify-between border-t border-slate-100 pt-4">
 						<Button
 							type="submit"
-							className="bg-indigo-600 hover:bg-indigo-700 text-white"
+							className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto"
 							disabled={isBusy}
 						>
 							{isSavingProvider ? (

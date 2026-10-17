@@ -95,21 +95,21 @@ export function DashboardPage(): React.JSX.Element {
 	return (
 		<div className="space-y-8">
 			{/* Encabezado */}
-			<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 				<div>
-					<h1 className="text-2xl font-bold tracking-tight text-slate-900">Resumen General</h1>
-					<p className="text-sm text-slate-500">
+					<h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Resumen General</h1>
+					<p className="text-xs sm:text-sm text-slate-500 mt-0.5">
 						Monitoreo en tiempo real de clientes, deuda e integración con el administrador de facturas.
 					</p>
 				</div>
-				<div className="flex flex-wrap items-center gap-3">
-					<Button asChild className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+				<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+					<Button asChild className="gap-2 bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto justify-center min-h-[42px]">
 						<Link to="/sincronizacion">
 							<Download className="w-4 h-4" />
 							<span>Importar cuotas</span>
 						</Link>
 					</Button>
-					<Button asChild variant="outline" className="gap-2">
+					<Button asChild variant="outline" className="gap-2 w-full sm:w-auto justify-center min-h-[42px]">
 						<Link to="/sincronizacion">
 							<DollarSign className="w-4 h-4 text-emerald-600" />
 							<span>Actualizar pagadas</span>
@@ -119,7 +119,7 @@ export function DashboardPage(): React.JSX.Element {
 			</div>
 
 			{/* Tarjetas de Métricas Clave */}
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
 				{/* Clientes */}
 				<Card className="border-slate-200 shadow-xs hover:border-slate-300 transition-all">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -179,7 +179,7 @@ export function DashboardPage(): React.JSX.Element {
 				</Card>
 			</div>
 
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
 				{/* Tabla de Últimas Corridas */}
 				<Card className="lg:col-span-2 shadow-xs">
 					<CardHeader>
@@ -201,8 +201,8 @@ export function DashboardPage(): React.JSX.Element {
 								<p className="text-sm">No hay corridas registradas en la base de datos.</p>
 							</div>
 						) : (
-							<div className="overflow-x-auto">
-								<table className="w-full text-left text-sm">
+							<div className="overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0">
+								<table className="w-full text-left text-sm min-w-[500px]">
 									<thead className="border-b border-slate-100 text-xs text-slate-400 uppercase tracking-wider font-semibold">
 										<tr>
 											<th className="pb-3">Tipo</th>

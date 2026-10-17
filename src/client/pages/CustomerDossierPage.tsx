@@ -411,7 +411,7 @@ export function CustomerDossierPage(): React.JSX.Element {
 							</div>
 						) : (
 							<div className="overflow-x-auto">
-								<table className="w-full text-left text-sm border-collapse">
+								<table className="w-full text-left text-sm border-collapse min-w-[560px]">
 									<thead className="border-b border-slate-100 bg-slate-50/75 text-xs text-slate-500 font-semibold uppercase tracking-wider">
 										<tr>
 											<th className="py-3 px-4">Contrato</th>
@@ -492,7 +492,7 @@ export function CustomerDossierPage(): React.JSX.Element {
 						</div>
 					) : (
 						<div className="overflow-x-auto">
-							<table className="w-full text-left text-sm border-collapse">
+							<table className="w-full text-left text-sm border-collapse min-w-[650px]">
 								<thead className="border-b border-slate-100 bg-slate-50/75 text-xs text-slate-500 font-semibold uppercase tracking-wider">
 									<tr>
 										<th className="py-3 px-4">Factura</th>

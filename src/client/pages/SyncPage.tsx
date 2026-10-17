@@ -298,7 +298,7 @@ export function SyncPage(): React.JSX.Element {
 			)}
 
 			{/* Tarjetas de Acciones Principales */}
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
 				{/* 1. Tarjeta de Importación de Cuotas */}
 				<Card className="border-slate-200 bg-white shadow-xs flex flex-col justify-between">
 					<CardHeader>
@@ -318,11 +318,11 @@ export function SyncPage(): React.JSX.Element {
 						</p>
 					</CardHeader>
 					<CardContent className="pt-0">
-						<div className="flex flex-col sm:flex-row items-center gap-3 pt-2 border-t border-slate-100">
+						<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-2 border-t border-slate-100">
 							<Button
 								type="button"
 								variant="outline"
-								className="w-full sm:w-auto gap-2 border-slate-300 text-slate-700 hover:bg-slate-50"
+								className="w-full sm:w-auto justify-center min-h-[42px] gap-2 border-slate-300 text-slate-700 hover:bg-slate-50"
 								disabled={isOperating}
 								onClick={() => void handleExecuteSync('import_simulation', true)}
 							>
@@ -336,7 +336,7 @@ export function SyncPage(): React.JSX.Element {
 							<Button
 								type="button"
 								variant="default"
-								className="w-full sm:w-auto gap-2 bg-indigo-600 hover:bg-indigo-700 text-white"
+								className="w-full sm:w-auto justify-center min-h-[42px] gap-2 bg-indigo-600 hover:bg-indigo-700 text-white"
 								disabled={isOperating}
 								onClick={() => handleRequestRealSync('import')}
 							>
@@ -370,11 +370,11 @@ export function SyncPage(): React.JSX.Element {
 						</p>
 					</CardHeader>
 					<CardContent className="pt-0">
-						<div className="flex flex-col sm:flex-row items-center gap-3 pt-2 border-t border-slate-100">
+						<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-2 border-t border-slate-100">
 							<Button
 								type="button"
 								variant="outline"
-								className="w-full sm:w-auto gap-2 border-slate-300 text-slate-700 hover:bg-slate-50"
+								className="w-full sm:w-auto justify-center min-h-[42px] gap-2 border-slate-300 text-slate-700 hover:bg-slate-50"
 								disabled={isOperating}
 								onClick={() => void handleExecuteSync('payment_simulation', true)}
 							>
@@ -388,7 +388,7 @@ export function SyncPage(): React.JSX.Element {
 							<Button
 								type="button"
 								variant="default"
-								className="w-full sm:w-auto gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+								className="w-full sm:w-auto justify-center min-h-[42px] gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
 								disabled={isOperating}
 								onClick={() => handleRequestRealSync('payment')}
 							>
@@ -480,7 +480,7 @@ export function SyncPage(): React.JSX.Element {
 					{/* Tabla de Corridas */}
 					{historyData !== null && historyData.runs.length > 0 && (
 						<div className="overflow-x-auto">
-							<table className="w-full text-left text-sm border-collapse">
+							<table className="w-full text-left text-sm border-collapse min-w-[640px]">
 								<thead className="border-b border-slate-100 bg-slate-50/75 text-xs text-slate-500 font-semibold uppercase tracking-wider">
 									<tr>
 										<th className="py-3 px-6">Tipo</th>
@@ -632,12 +632,12 @@ export function SyncPage(): React.JSX.Element {
 							</p>
 						</div>
 
-						<div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+						<div className="flex flex-col-reverse sm:flex-row sm:items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
 							<Button
 								type="button"
 								variant="outline"
 								onClick={handleCancelConfirmation}
-								className="text-xs"
+								className="w-full sm:w-auto justify-center min-h-[42px] text-xs"
 							>
 								Cancelar
 							</Button>
@@ -645,7 +645,7 @@ export function SyncPage(): React.JSX.Element {
 								type="button"
 								variant="default"
 								onClick={handleConfirmRealSync}
-								className={`text-xs text-white ${
+								className={`w-full sm:w-auto justify-center min-h-[42px] text-xs text-white ${
 									pendingConfirmation === 'import'
 										? 'bg-indigo-600 hover:bg-indigo-700'
 										: 'bg-emerald-600 hover:bg-emerald-700'
