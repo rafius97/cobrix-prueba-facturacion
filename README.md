@@ -116,3 +116,17 @@ Para profundizar en el diseño, operación y decisiones del proyecto, consulta l
 - [**Glosario de Términos** (`docs/GLOSARIO.md`)](docs/GLOSARIO.md): Definiciones de términos técnicos y de dominio utilizados en la solución.
 - [**Enunciado de la Prueba** (`docs/ENUNCIADO.md`)](docs/ENUNCIADO.md): Especificación original de requerimientos y criterios de evaluación.
 - [**API del Administrador ISP** (`docs/API.md`)](docs/API.md): Especificación técnica de la API simulada del ISP.
+
+---
+
+## 8. Trabajo futuro y mejoras pendientes (TO-DOs)
+
+Por limitaciones de tiempo en el alcance de la prueba técnica, se priorizó la corrección de las reglas de negocio, la integridad contable y la cobertura de pruebas, dejando documentadas las siguientes mejoras técnicas para una siguiente fase:
+
+- **Integración de logs estructurados en el backend:** Sustituir la salida estándar de consola por un sistema de logging estructurado (como Pino o Winston) con niveles (`info`, `warn`, `error`, `debug`), formato JSON y trazabilidad por identificador de corrida (`correlationId`).
+- **Integración de TanStack React Query en el frontend:** Reemplazar el manejo manual de estados con `fetch` y `useEffect` por queries y mutaciones reactivas para gestión óptima de caché, invalidaciones automáticas tras sincronizar y reintentos en segundo plano.
+- **Integración de pruebas E2E en el frontend con Vitest / Playwright:** Incorporar tests de extremo a extremo que automaticen la navegación en el navegador, la ejecución de sincronizaciones manuales desde la UI y la verificación de modales de detalle.
+- **Integrar Zod en ambos proyectos:** Validación exhaustiva de esquemas en tiempo de ejecución tanto en la frontera de entrada del backend (respuestas del ISP y payloads de la API) como en el frontend, complementando las guardas de tipos nativas actuales.
+- **Ampliación de edge cases en los test suites:** Incorporar más escenarios límite alrededor de colisiones de pagos concurrentes, reversiones complejas, interrupciones de red durante corridas extensas y reanudación tras fallos.
+- **Mejora del diseño de alertas y retroalimentación:** Pulir los componentes visuales de mensajes contextuales (`toast`, estados de `success`, `danger`, `alert` y banners de advertencia) con mejor jerarquía y microanimaciones.
+- **Diseño responsive para móviles y tablets:** Adaptar las vistas del dashboard, tablas de clientes y modales de historial para una experiencia táctil y fluida en pantallas pequeñas.
