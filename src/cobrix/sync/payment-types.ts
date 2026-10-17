@@ -4,7 +4,7 @@
  * Estrictamente tipado sin `any` ni `unknown`.
  */
 
-import type { SyncRunStatus } from '../db/types.ts'
+import type { SyncRunStatus, SyncTriggerType } from '../db/types.ts'
 
 /**
  * Opciones para ejecutar una corrida de sincronización y conciliación de pagos.
@@ -29,6 +29,11 @@ export interface RunPaymentSyncOptions {
 	 * Si no se especifica, el servicio utiliza la fecha actual del sistema.
 	 */
 	readonly endDate?: string
+
+	/**
+	 * Origen explícito de la sincronización: 'MANUAL' (por defecto) o 'SCHEDULED'.
+	 */
+	readonly triggerType?: SyncTriggerType
 }
 
 /**

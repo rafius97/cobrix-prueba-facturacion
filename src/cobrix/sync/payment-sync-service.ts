@@ -17,7 +17,7 @@ import {
 	invoiceRepository,
 	syncRunRepository,
 } from '../db/repositories.ts'
-import type { CreateSyncRunDetailInput, Invoice } from '../db/types.ts'
+import type { CreateSyncRunDetailInput, Invoice, SyncTriggerType } from '../db/types.ts'
 import { dollarsToCents, formatUsd } from '../domain/money.ts'
 import { currentPeriod, today } from '../../shared/dates.ts'
 import type {
@@ -71,6 +71,7 @@ export class PaymentSyncService {
 	 */
 	async run(options?: RunPaymentSyncOptions): Promise<PaymentSyncResult> {
 		const isSimulation = options?.isSimulation ?? false
+		const triggerType: SyncTriggerType = options?.triggerType ?? 'MANUAL'
 		const runId = randomUUID()
 		const startMs = Date.now()
 		const startedAt = new Date(startMs).toISOString()
@@ -101,6 +102,7 @@ export class PaymentSyncService {
 				syncRunRepository.create(this.db, {
 					id: runId,
 					type: 'PAYMENT_UPDATE',
+					triggerType,
 					isSimulation,
 					status: 'COMPLETED',
 					startedAt,
@@ -442,6 +444,7 @@ export class PaymentSyncService {
 					syncRunRepository.create(this.db, {
 						id: runId,
 						type: 'PAYMENT_UPDATE',
+						triggerType,
 						isSimulation: false,
 						status: 'COMPLETED',
 						startedAt,
@@ -466,6 +469,7 @@ export class PaymentSyncService {
 					syncRunRepository.create(this.db, {
 						id: runId,
 						type: 'PAYMENT_UPDATE',
+						triggerType,
 						isSimulation: true,
 						status: 'COMPLETED',
 						startedAt,
@@ -535,6 +539,7 @@ export class PaymentSyncService {
 					syncRunRepository.create(this.db, {
 						id: runId,
 						type: 'PAYMENT_UPDATE',
+						triggerType,
 						isSimulation,
 						status: 'FAILED',
 						startedAt,

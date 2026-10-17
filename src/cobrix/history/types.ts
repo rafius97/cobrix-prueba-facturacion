@@ -10,6 +10,7 @@ import type {
 	SyncRunDetail,
 	SyncRunStatus,
 	SyncRunType,
+	SyncTriggerType,
 } from '../db/types.ts'
 import type { ImportRunSummary } from '../sync/types.ts'
 import type { PaymentSyncSummary } from '../sync/payment-types.ts'
@@ -23,6 +24,7 @@ export type {
 	SyncRunDetail,
 	SyncRunStatus,
 	SyncRunType,
+	SyncTriggerType,
 }
 
 /**
@@ -31,6 +33,7 @@ export type {
 export interface RawSyncRunInput {
 	readonly id: string
 	readonly type: string
+	readonly triggerType?: SyncTriggerType
 	readonly isSimulation: boolean
 	readonly status: SyncRunStatus
 	readonly startedAt: string
@@ -58,6 +61,7 @@ export type TypedSyncRunSummary =
 export interface TypedImportSyncRun {
 	readonly id: string
 	readonly type: 'IMPORT'
+	readonly triggerType: SyncTriggerType
 	readonly isSimulation: boolean
 	readonly status: SyncRunStatus
 	readonly startedAt: string
@@ -73,6 +77,7 @@ export interface TypedImportSyncRun {
 export interface TypedPaymentSyncRun {
 	readonly id: string
 	readonly type: 'PAYMENT_UPDATE'
+	readonly triggerType: SyncTriggerType
 	readonly isSimulation: boolean
 	readonly status: SyncRunStatus
 	readonly startedAt: string

@@ -8,6 +8,7 @@
 
 import { readFileSync } from 'node:fs'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
+import type { DatabaseSync } from 'node:sqlite'
 
 import { CSS, esc, html, layout, pill, type Raw, type Tone } from './layout.ts'
 
@@ -20,6 +21,7 @@ export interface AppDeps {
 	readonly assignmentPath: string
 	/** Optional directory for compiled static client assets. */
 	readonly distDir?: string
+	readonly db?: DatabaseSync
 }
 
 interface Screen {
@@ -140,6 +142,7 @@ export function createApp(deps: AppDeps): Server {
 		simulatorUrl: deps.simulatorUrl,
 		assignmentPath: deps.assignmentPath,
 		distDir: deps.distDir,
+		db: deps.db,
 		legacyHandler: route,
 	})
 }

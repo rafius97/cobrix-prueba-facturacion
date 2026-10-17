@@ -270,11 +270,16 @@ export function parseTypedSyncRun(run: RawSyncRunInput | SyncRun): TypedSyncRun 
 		throw new HistoryParseError(`Unknown run type: '${run.type}'`)
 	}
 
+	const triggerType = 'triggerType' in run && (run.triggerType === 'MANUAL' || run.triggerType === 'SCHEDULED')
+		? run.triggerType
+		: 'MANUAL'
+
 	if (run.type === 'IMPORT') {
 		const summary = parseImportRunSummary(run.summaryJson)
 		const typedRun: TypedImportSyncRun = {
 			id: run.id,
 			type: 'IMPORT',
+			triggerType,
 			isSimulation: run.isSimulation,
 			status: run.status,
 			startedAt: run.startedAt,
@@ -290,6 +295,7 @@ export function parseTypedSyncRun(run: RawSyncRunInput | SyncRun): TypedSyncRun 
 	const typedRun: TypedPaymentSyncRun = {
 		id: run.id,
 		type: 'PAYMENT_UPDATE',
+		triggerType,
 		isSimulation: run.isSimulation,
 		status: run.status,
 		startedAt: run.startedAt,

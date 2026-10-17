@@ -485,6 +485,7 @@ export function SyncPage(): React.JSX.Element {
 									<tr>
 										<th className="py-3 px-6">Tipo</th>
 										<th className="py-3 px-4">Modalidad</th>
+										<th className="py-3 px-4">Origen</th>
 										<th className="py-3 px-4">Inicio</th>
 										<th className="py-3 px-4">Estado</th>
 										<th className="py-3 px-6">Resultado</th>
@@ -535,7 +536,26 @@ export function SyncPage(): React.JSX.Element {
 													)}
 												</td>
 
-												{/* 3. Inicio */}
+												{/* 3. Origen */}
+												<td className="py-3.5 px-4">
+													{run.triggerType === 'SCHEDULED' ? (
+														<Badge
+															variant="secondary"
+															className="bg-indigo-50 text-indigo-700 border-indigo-200 font-medium"
+														>
+															Automática
+														</Badge>
+													) : (
+														<Badge
+															variant="secondary"
+															className="bg-slate-100 text-slate-700 font-medium"
+														>
+															Manual
+														</Badge>
+													)}
+												</td>
+
+												{/* 4. Inicio */}
 												<td className="py-3.5 px-4 font-mono text-xs text-slate-600 whitespace-nowrap">
 													{formatDateTime(run.startedAt)}
 												</td>

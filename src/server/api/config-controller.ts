@@ -47,6 +47,8 @@ export function mapConfigToDto(config: CobrixConfig): ConfigResponseDto {
 		excludedDocumentTypes: config.excludedDocumentTypes,
 		autoRunHour: config.autoRunHour,
 		autoRunActive: config.autoRunActive,
+		lastAutoRunDate: config.lastAutoRunDate,
+		lastAutoRunStatus: config.lastAutoRunStatus,
 	}
 }
 

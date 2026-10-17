@@ -30,6 +30,10 @@ export function createCobrixDatabase(dbPath: string = DEFAULT_COBRIX_DB): Databa
 	// Create tables and indexes
 	db.exec(COBRIX_SCHEMA)
 
+	// Ensure backwards compatibility by idempotently migrating missing columns
+	migrateConfigSchemaIfNeeded(db)
+	migrateSyncRunSchemaIfNeeded(db)
+
 	// Ensure default singleton configuration exists
 	db.exec(`
 		INSERT OR IGNORE INTO config (
@@ -44,6 +48,53 @@ export function createCobrixDatabase(dbPath: string = DEFAULT_COBRIX_DB): Databa
 	`)
 
 	return db
+}
+
+/**
+ * Migra de forma no destructiva e idempotente el esquema de la tabla config
+ * para agregar las columnas de rastreo de corridas automáticas si no existen.
+ */
+export function migrateConfigSchemaIfNeeded(db: DatabaseSync): void {
+	const columns = db.prepare('PRAGMA table_info(config);').all()
+	let hasLastAutoRunDate = false
+	let hasLastAutoRunStatus = false
+
+	for (const col of columns) {
+		const name = col['name']
+		if (name === 'last_auto_run_date') {
+			hasLastAutoRunDate = true
+		} else if (name === 'last_auto_run_status') {
+			hasLastAutoRunStatus = true
+		}
+	}
+
+	if (!hasLastAutoRunDate) {
+		db.exec('ALTER TABLE config ADD COLUMN last_auto_run_date TEXT;')
+	}
+	if (!hasLastAutoRunStatus) {
+		db.exec('ALTER TABLE config ADD COLUMN last_auto_run_status TEXT;')
+	}
+}
+
+/**
+ * Migra de forma no destructiva e idempotente el esquema de la tabla sync_run
+ * para agregar la columna trigger_type si no existe.
+ */
+export function migrateSyncRunSchemaIfNeeded(db: DatabaseSync): void {
+	const columns = db.prepare('PRAGMA table_info(sync_run);').all()
+	let hasTriggerType = false
+
+	for (const col of columns) {
+		const name = col['name']
+		if (name === 'trigger_type') {
+			hasTriggerType = true
+			break
+		}
+	}
+
+	if (!hasTriggerType) {
+		db.exec("ALTER TABLE sync_run ADD COLUMN trigger_type TEXT NOT NULL DEFAULT 'MANUAL' CHECK (trigger_type IN ('MANUAL', 'SCHEDULED'));")
+	}
 }
 
 /**

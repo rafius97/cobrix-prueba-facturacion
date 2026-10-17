@@ -16,6 +16,8 @@ process.env.SANDBOX_TODAY ??= '2026-10-13'
 const { DEFAULT_BILLING_API_DB, seedBillingApi } = await import('./billing-api/seed.ts')
 const { createBillingApiServer } = await import('./billing-api/server.ts')
 const { createApp } = await import('./web/app.ts')
+const { createCobrixDatabase } = await import('./cobrix/db/database.ts')
+const { SyncScheduler } = await import('./cobrix/scheduler/sync-scheduler.ts')
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const billingApiDb = process.env.BILLING_API_DB ?? DEFAULT_BILLING_API_DB
@@ -29,8 +31,17 @@ const billingApi = createBillingApiServer(billingApiDb)
 await billingApi.listen(billingApiPort, host)
 const simulatorUrl = `http://${host}:${billingApiPort}`
 
+const cobrixDb = createCobrixDatabase()
+const scheduler = new SyncScheduler({ db: cobrixDb })
+scheduler.start()
+
 const distDir = resolve(root, 'dist/client')
-const app = createApp({ simulatorUrl, assignmentPath: resolve(root, 'docs/ENUNCIADO.md'), distDir })
+const app = createApp({
+	simulatorUrl,
+	assignmentPath: resolve(root, 'docs/ENUNCIADO.md'),
+	distDir,
+	db: cobrixDb,
+})
 app.listen(appPort, host)
 
 const panelMode = existsSync(resolve(distDir, 'index.html')) ? 'React SPA' : 'Esqueleto'
@@ -40,6 +51,7 @@ console.log(`Swagger:                  ${simulatorUrl}/docs`)
 console.log(`Fecha de la prueba:       ${process.env.SANDBOX_TODAY}`)
 
 const shutdown = (): void => {
+	scheduler.stop()
 	app.close()
 	void billingApi.close().then(() => process.exit(0))
 }

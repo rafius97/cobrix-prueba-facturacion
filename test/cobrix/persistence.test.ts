@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
-import { createCobrixDatabase, withTransaction } from '../../src/cobrix/db/database.ts'
+import { createCobrixDatabase, migrateSyncRunSchemaIfNeeded, withTransaction } from '../../src/cobrix/db/database.ts'
 import {
 	configRepository,
 	contractRepository,
@@ -342,6 +342,122 @@ describe('Persistencia Cobrix: Transacciones y auditoría', () => {
 			assert.equal(events.length, 1)
 			assert.equal(events[0]?.eventType, 'CUSTOMER_CREATED')
 			assert.doesNotMatch(events[0]?.metadataJson ?? '', /password|token/i)
+		} finally {
+			db.close()
+		}
+	})
+
+	it('sync_run acepta MANUAL y SCHEDULED y asigna MANUAL por defecto si se omite', () => {
+		const db = createCobrixDatabase(':memory:')
+		try {
+			// 1. Inserción con triggerType explícito MANUAL
+			const manualRun = syncRunRepository.create(db, {
+				id: 'run-manual-01',
+				type: 'IMPORT',
+				triggerType: 'MANUAL',
+				isSimulation: false,
+				status: 'COMPLETED',
+				startedAt: '2026-10-16T10:00:00.000Z',
+				finishedAt: '2026-10-16T10:00:01.000Z',
+				summaryJson: '{}',
+			})
+			assert.equal(manualRun.triggerType, 'MANUAL')
+
+			// 2. Inserción con triggerType explícito SCHEDULED
+			const scheduledRun = syncRunRepository.create(db, {
+				id: 'run-sched-01',
+				type: 'PAYMENT_UPDATE',
+				triggerType: 'SCHEDULED',
+				isSimulation: false,
+				status: 'COMPLETED',
+				startedAt: '2026-10-16T10:01:00.000Z',
+				finishedAt: '2026-10-16T10:01:01.000Z',
+				summaryJson: '{}',
+			})
+			assert.equal(scheduledRun.triggerType, 'SCHEDULED')
+
+			// 3. Inserción omitiendo triggerType -> debe tomar 'MANUAL' por defecto
+			const defaultRun = syncRunRepository.create(db, {
+				id: 'run-default-01',
+				type: 'IMPORT',
+				isSimulation: true,
+				status: 'COMPLETED',
+				startedAt: '2026-10-16T10:02:00.000Z',
+				finishedAt: '2026-10-16T10:02:01.000Z',
+				summaryJson: '{}',
+			})
+			assert.equal(defaultRun.triggerType, 'MANUAL')
+
+			// Verificar consulta getById y list
+			const fetchedSched = syncRunRepository.getById(db, 'run-sched-01')
+			assert.equal(fetchedSched?.triggerType, 'SCHEDULED')
+
+			const runs = syncRunRepository.list(db)
+			assert.equal(runs.length, 3)
+		} finally {
+			db.close()
+		}
+	})
+
+	it('migración: conserva registros existentes y agrega trigger_type con valor MANUAL por defecto', () => {
+		const db = createCobrixDatabase(':memory:')
+		try {
+			// Simular una base antigua creando una tabla sync_run_legacy sin columna trigger_type
+			db.exec(`
+				CREATE TABLE sync_run_legacy (
+					id TEXT PRIMARY KEY,
+					type TEXT NOT NULL CHECK (type IN ('IMPORT', 'PAYMENT_UPDATE')),
+					is_simulation INTEGER NOT NULL CHECK (is_simulation IN (0, 1)),
+					status TEXT NOT NULL CHECK (status IN ('COMPLETED', 'FAILED')),
+					started_at TEXT NOT NULL,
+					finished_at TEXT NOT NULL,
+					error_message TEXT,
+					summary_json TEXT NOT NULL
+				);
+			`)
+
+			// Insertar registros en el esquema antiguo
+			db.prepare(`
+				INSERT INTO sync_run_legacy (
+					id, type, is_simulation, status, started_at, finished_at, summary_json
+				) VALUES (?, ?, ?, ?, ?, ?, ?)
+			`).run('legacy-run-1', 'IMPORT', 0, 'COMPLETED', '2026-10-15T12:00:00Z', '2026-10-15T12:00:01Z', '{}')
+
+			// Ejecutar la migración adaptada a esa tabla
+			const columns = db.prepare('PRAGMA table_info(sync_run_legacy);').all()
+			let hasTriggerType = false
+			for (const col of columns) {
+				if (col['name'] === 'trigger_type') hasTriggerType = true
+			}
+			assert.equal(hasTriggerType, false)
+
+			// Aplicar la misma instrucción DDL de migrateSyncRunSchemaIfNeeded
+			db.exec("ALTER TABLE sync_run_legacy ADD COLUMN trigger_type TEXT NOT NULL DEFAULT 'MANUAL' CHECK (trigger_type IN ('MANUAL', 'SCHEDULED'));")
+
+			// Verificar que los datos históricos se conservan intactos y reciben 'MANUAL'
+			const row = db.prepare('SELECT id, type, trigger_type FROM sync_run_legacy WHERE id = ?').get('legacy-run-1')
+			assert.notEqual(row, undefined)
+			assert.equal(row?.['id'], 'legacy-run-1')
+			assert.equal(row?.['trigger_type'], 'MANUAL')
+
+			// Verificar idempotencia de migrateSyncRunSchemaIfNeeded en sync_run
+			migrateSyncRunSchemaIfNeeded(db)
+		} finally {
+			db.close()
+		}
+	})
+
+	it('restricción CHECK en sync_run rechaza valores inválidos de trigger_type', () => {
+		const db = createCobrixDatabase(':memory:')
+		try {
+			assert.throws(() => {
+				db.prepare(`
+					INSERT INTO sync_run (
+						id, type, trigger_type, is_simulation, status,
+						started_at, finished_at, summary_json
+					) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+				`).run('invalid-run', 'IMPORT', 'INVALID_TRIGGER', 0, 'COMPLETED', '2026-10-16T10:00:00Z', '2026-10-16T10:00:01Z', '{}')
+			}, /CHECK constraint failed/)
 		} finally {
 			db.close()
 		}

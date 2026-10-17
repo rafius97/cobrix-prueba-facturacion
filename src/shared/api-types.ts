@@ -6,6 +6,8 @@
 
 export type SyncRunStatusDto = 'COMPLETED' | 'FAILED'
 export type SyncRunTypeDto = 'IMPORT' | 'PAYMENT_UPDATE'
+export type SyncTriggerTypeDto = 'MANUAL' | 'SCHEDULED'
+export type AutoRunStatusDto = 'RUNNING' | 'COMPLETED' | 'FAILED'
 
 export interface ImportRunSummaryDto {
 	readonly type: 'IMPORT'
@@ -52,6 +54,7 @@ export type SyncRunSummaryDto = ImportRunSummaryDto | PaymentSyncSummaryDto
 export interface SyncRunItemDto {
 	readonly id: string
 	readonly type: SyncRunTypeDto
+	readonly triggerType: SyncTriggerTypeDto
 	readonly isSimulation: boolean
 	readonly status: SyncRunStatusDto
 	readonly startedAt: string
@@ -110,6 +113,8 @@ export interface CompanyConfigDto {
 	readonly excludedDocumentTypes: readonly string[]
 	readonly autoRunHour: string
 	readonly autoRunActive: boolean
+	readonly lastAutoRunDate: string | null
+	readonly lastAutoRunStatus: AutoRunStatusDto | null
 }
 
 export type ConfigResponseDto = CompanyConfigDto

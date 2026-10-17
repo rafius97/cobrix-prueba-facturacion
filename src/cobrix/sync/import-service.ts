@@ -20,7 +20,7 @@ import {
 	invoiceRepository,
 	syncRunRepository,
 } from '../db/repositories.ts'
-import type { CreateSyncRunDetailInput } from '../db/types.ts'
+import type { CreateSyncRunDetailInput, SyncTriggerType } from '../db/types.ts'
 import {
 	isDocumentTypeExcluded,
 	normalizeIdentification,
@@ -117,6 +117,7 @@ export class ImportService {
 	 */
 	async run(options?: RunImportOptions): Promise<ImportRunResult> {
 		const isSimulation = options?.isSimulation ?? false
+		const triggerType: SyncTriggerType = options?.triggerType ?? 'MANUAL'
 		const runId = randomUUID()
 		const startMs = Date.now()
 		const startedAt = new Date(startMs).toISOString()
@@ -584,6 +585,7 @@ export class ImportService {
 					syncRunRepository.create(this.db, {
 						id: runId,
 						type: 'IMPORT',
+						triggerType,
 						isSimulation: false,
 						status: 'COMPLETED',
 						startedAt,
@@ -608,6 +610,7 @@ export class ImportService {
 					syncRunRepository.create(this.db, {
 						id: runId,
 						type: 'IMPORT',
+						triggerType,
 						isSimulation: true,
 						status: 'COMPLETED',
 						startedAt,
@@ -674,6 +677,7 @@ export class ImportService {
 					syncRunRepository.create(this.db, {
 						id: runId,
 						type: 'IMPORT',
+						triggerType,
 						isSimulation,
 						status: 'FAILED',
 						startedAt,

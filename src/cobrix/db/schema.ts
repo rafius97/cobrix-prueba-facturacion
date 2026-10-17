@@ -20,7 +20,9 @@ CREATE TABLE IF NOT EXISTS config (
 	run_amount_limit_cents INTEGER,
 	excluded_document_types TEXT NOT NULL DEFAULT '',
 	auto_run_hour TEXT NOT NULL DEFAULT '04:00',
-	auto_run_active INTEGER NOT NULL DEFAULT 0
+	auto_run_active INTEGER NOT NULL DEFAULT 0,
+	last_auto_run_date TEXT,
+	last_auto_run_status TEXT CHECK (last_auto_run_status IN ('RUNNING', 'COMPLETED', 'FAILED'))
 );
 
 CREATE TABLE IF NOT EXISTS customer (
@@ -72,6 +74,7 @@ CREATE TABLE IF NOT EXISTS invoice (
 CREATE TABLE IF NOT EXISTS sync_run (
 	id TEXT PRIMARY KEY,
 	type TEXT NOT NULL CHECK (type IN ('IMPORT', 'PAYMENT_UPDATE')),
+	trigger_type TEXT NOT NULL DEFAULT 'MANUAL' CHECK (trigger_type IN ('MANUAL', 'SCHEDULED')),
 	is_simulation INTEGER NOT NULL CHECK (is_simulation IN (0, 1)),
 	status TEXT NOT NULL CHECK (status IN ('COMPLETED', 'FAILED')),
 	started_at TEXT NOT NULL,

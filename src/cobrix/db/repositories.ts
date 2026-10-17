@@ -7,6 +7,7 @@ import type { DatabaseSync, SQLOutputValue } from 'node:sqlite'
 
 import type { DocumentType, PersonType } from '../domain/identification.ts'
 import type {
+	AutoRunStatus,
 	CobrixConfig,
 	Contract,
 	CreateCustomerEventInput,
@@ -26,6 +27,7 @@ import type {
 	SyncRunDetail,
 	SyncRunStatus,
 	SyncRunType,
+	SyncTriggerType,
 	UpdateConfigInput,
 	UpsertContractInput,
 } from './types.ts'
@@ -101,6 +103,12 @@ function parseSyncRunStatus(row: Record<string, SQLOutputValue>, column: string)
 	throw new Error(`Invalid SyncRunStatus value: ${val}`)
 }
 
+function parseSyncTriggerType(row: Record<string, SQLOutputValue>, column: string): SyncTriggerType {
+	const val = parseString(row, column)
+	if (val === 'MANUAL' || val === 'SCHEDULED') return val
+	throw new Error(`Invalid SyncTriggerType value: ${val}`)
+}
+
 function parseCustomerEventType(row: Record<string, SQLOutputValue>, column: string): CustomerEventType {
 	const val = parseString(row, column)
 	if (
@@ -112,6 +120,13 @@ function parseCustomerEventType(row: Record<string, SQLOutputValue>, column: str
 		return val
 	}
 	throw new Error(`Invalid CustomerEventType value: ${val}`)
+}
+
+function parseAutoRunStatus(row: Record<string, SQLOutputValue>, column: string): AutoRunStatus | null {
+	const val = parseOptionalString(row, column)
+	if (val === null) return null
+	if (val === 'RUNNING' || val === 'COMPLETED' || val === 'FAILED') return val
+	throw new Error(`Invalid AutoRunStatus value: ${val}`)
 }
 
 // ============================================================================
@@ -150,6 +165,8 @@ function mapConfig(row: Record<string, SQLOutputValue>): CobrixConfig {
 		excludedDocumentTypes,
 		autoRunHour: parseString(row, 'auto_run_hour'),
 		autoRunActive: parseBoolean(row, 'auto_run_active'),
+		lastAutoRunDate: parseOptionalString(row, 'last_auto_run_date'),
+		lastAutoRunStatus: parseAutoRunStatus(row, 'last_auto_run_status'),
 	}
 }
 
@@ -209,6 +226,7 @@ function mapSyncRun(row: Record<string, SQLOutputValue>): SyncRun {
 	return {
 		id: parseString(row, 'id'),
 		type: parseSyncRunType(row, 'type'),
+		triggerType: parseSyncTriggerType(row, 'trigger_type'),
 		isSimulation: parseBoolean(row, 'is_simulation'),
 		status: parseSyncRunStatus(row, 'status'),
 		startedAt: parseString(row, 'started_at'),
@@ -325,6 +343,15 @@ export const configRepository = {
 		)
 
 		return configRepository.get(db)
+	},
+
+	updateAutoRunState(db: DatabaseSync, date: string, status: AutoRunStatus): void {
+		db.prepare(`
+			UPDATE config SET
+				last_auto_run_date = ?,
+				last_auto_run_status = ?
+			WHERE id = 1
+		`).run(date, status)
 	},
 }
 
@@ -649,14 +676,16 @@ export const syncRunRepository = {
 	},
 
 	create(db: DatabaseSync, input: CreateSyncRunInput): SyncRun {
+		const triggerType = input.triggerType ?? 'MANUAL'
 		db.prepare(`
 			INSERT INTO sync_run (
-				id, type, is_simulation, status,
+				id, type, trigger_type, is_simulation, status,
 				started_at, finished_at, error_message, summary_json
-			) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`).run(
 			input.id,
 			input.type,
+			triggerType,
 			input.isSimulation ? 1 : 0,
 			input.status,
 			input.startedAt,

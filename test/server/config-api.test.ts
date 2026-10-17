@@ -83,6 +83,13 @@ function parseConfigResponse(json: JsonObject): ConfigResponseDto {
 		excludedDocumentTypes,
 		autoRunHour: typeof json['autoRunHour'] === 'string' ? json['autoRunHour'] : '',
 		autoRunActive: typeof json['autoRunActive'] === 'boolean' ? json['autoRunActive'] : false,
+		lastAutoRunDate: typeof json['lastAutoRunDate'] === 'string' ? json['lastAutoRunDate'] : null,
+		lastAutoRunStatus:
+			json['lastAutoRunStatus'] === 'RUNNING' ||
+			json['lastAutoRunStatus'] === 'COMPLETED' ||
+			json['lastAutoRunStatus'] === 'FAILED'
+				? json['lastAutoRunStatus']
+				: null,
 	}
 }
 
@@ -232,10 +239,24 @@ describe('API REST: Configuración (/api/config/*)', () => {
 		assert.equal(config.graceDays, 0)
 		assert.equal(config.autoRunHour, '04:00')
 		assert.equal(config.autoRunActive, false)
+		assert.equal(config.lastAutoRunDate, null)
+		assert.equal(config.lastAutoRunStatus, null)
 
 		// COMPROBACIÓN CRÍTICA DE SEGURIDAD: apiPassword no debe estar presente en el JSON
 		assert.equal(json['apiPassword'], undefined)
 		assert.ok(!rawText.includes('cobrix-sandbox'))
+	})
+
+	it('1b. GET /api/config devuelve lastAutoRunDate y lastAutoRunStatus cuando existen', async () => {
+		db.exec("UPDATE config SET last_auto_run_date = '2026-10-16', last_auto_run_status = 'COMPLETED';")
+		const res = await fetch(`${baseUrl}/api/config`)
+		assert.equal(res.status, 200)
+
+		const json = parseJsonText(await res.text())
+		assert.ok(isJsonObject(json))
+		const config = parseConfigResponse(json)
+		assert.equal(config.lastAutoRunDate, '2026-10-16')
+		assert.equal(config.lastAutoRunStatus, 'COMPLETED')
 	})
 
 	it('2. PUT /api/config actualiza campos válidos y preserva los omitidos', async () => {

@@ -8,7 +8,9 @@ import type { DocumentType, PersonType } from '../domain/identification.ts'
 export type InvoiceStatus = 'OPEN' | 'PAID'
 export type SyncRunType = 'IMPORT' | 'PAYMENT_UPDATE'
 export type SyncRunStatus = 'COMPLETED' | 'FAILED'
+export type SyncTriggerType = 'MANUAL' | 'SCHEDULED'
 export type CustomerEventType = 'CUSTOMER_CREATED' | 'INVOICE_IMPORTED' | 'INVOICE_PAID' | 'PARTIAL_PAYMENT'
+export type AutoRunStatus = 'RUNNING' | 'COMPLETED' | 'FAILED'
 
 export interface CobrixConfig {
 	readonly id: number
@@ -27,6 +29,8 @@ export interface CobrixConfig {
 	readonly excludedDocumentTypes: readonly DocumentType[]
 	readonly autoRunHour: string
 	readonly autoRunActive: boolean
+	readonly lastAutoRunDate: string | null
+	readonly lastAutoRunStatus: AutoRunStatus | null
 }
 
 export interface UpdateConfigInput {
@@ -138,6 +142,7 @@ export interface MarkInvoicePaidInput {
 export interface SyncRun {
 	readonly id: string
 	readonly type: SyncRunType
+	readonly triggerType: SyncTriggerType
 	readonly isSimulation: boolean
 	readonly status: SyncRunStatus
 	readonly startedAt: string
@@ -149,6 +154,7 @@ export interface SyncRun {
 export interface CreateSyncRunInput {
 	readonly id: string
 	readonly type: SyncRunType
+	readonly triggerType?: SyncTriggerType
 	readonly isSimulation: boolean
 	readonly status: SyncRunStatus
 	readonly startedAt: string

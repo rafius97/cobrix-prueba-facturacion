@@ -48,6 +48,7 @@ export function getDashboardData(db: DatabaseSync): DashboardResponseDto {
 			return {
 				id: run.id,
 				type: run.type,
+				triggerType: run.triggerType,
 				isSimulation: run.isSimulation,
 				status: run.status,
 				startedAt: run.startedAt,
@@ -77,6 +78,7 @@ export function getDashboardData(db: DatabaseSync): DashboardResponseDto {
 		return {
 			id: run.id,
 			type: run.type,
+			triggerType: run.triggerType,
 			isSimulation: run.isSimulation,
 			status: run.status,
 			startedAt: run.startedAt,
@@ -111,6 +113,8 @@ export function getDashboardData(db: DatabaseSync): DashboardResponseDto {
 		excludedDocumentTypes: config.excludedDocumentTypes,
 		autoRunHour: config.autoRunHour,
 		autoRunActive: config.autoRunActive,
+		lastAutoRunDate: config.lastAutoRunDate,
+		lastAutoRunStatus: config.lastAutoRunStatus,
 	}
 
 	return {

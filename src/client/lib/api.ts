@@ -23,6 +23,8 @@ import type {
 	SyncRunSummaryDto,
 	SyncRunTriggerRequestDto,
 	SyncRunTypeDto,
+	SyncTriggerTypeDto,
+	AutoRunStatusDto,
 	TestConnectionRequestDto,
 	TestConnectionResponseDto,
 	UpdateConfigRequestDto,
@@ -333,6 +335,8 @@ export function parseSyncRunItem(val: JsonValue): SyncRunItemDto {
 
 	const rawType = val.type
 	const type: SyncRunTypeDto = rawType === 'PAYMENT_UPDATE' ? 'PAYMENT_UPDATE' : 'IMPORT'
+	const rawTrigger = val.triggerType
+	const triggerType: SyncTriggerTypeDto = rawTrigger === 'SCHEDULED' ? 'SCHEDULED' : 'MANUAL'
 	const rawStatus = val.status
 	const status: SyncRunStatusDto = rawStatus === 'FAILED' ? 'FAILED' : 'COMPLETED'
 
@@ -348,6 +352,7 @@ export function parseSyncRunItem(val: JsonValue): SyncRunItemDto {
 	return {
 		id: typeof val.id === 'string' ? val.id : '',
 		type,
+		triggerType,
 		isSimulation: val.isSimulation === true,
 		status,
 		startedAt: typeof val.startedAt === 'string' ? val.startedAt : '',
@@ -562,6 +567,13 @@ function parseConfigResponse(val: JsonValue): ConfigResponseDto {
 		excludedDocumentTypes,
 		autoRunHour: typeof val.autoRunHour === 'string' ? val.autoRunHour : '03:00',
 		autoRunActive: typeof val.autoRunActive === 'boolean' ? val.autoRunActive : false,
+		lastAutoRunDate: typeof val.lastAutoRunDate === 'string' ? val.lastAutoRunDate : null,
+		lastAutoRunStatus:
+			val.lastAutoRunStatus === 'RUNNING' ||
+			val.lastAutoRunStatus === 'COMPLETED' ||
+			val.lastAutoRunStatus === 'FAILED'
+				? val.lastAutoRunStatus
+				: null,
 	}
 }
 

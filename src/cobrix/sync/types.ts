@@ -3,7 +3,7 @@
  * Estrictamente tipado sin `any` ni `unknown`.
  */
 
-import type { SyncRunStatus } from '../db/types.ts'
+import type { SyncRunStatus, SyncTriggerType } from '../db/types.ts'
 import type { DocumentType } from '../domain/identification.ts'
 
 /**
@@ -16,6 +16,11 @@ export interface RunImportOptions {
 	 * pero no persiste cambios en las tablas de negocio (customer, contract, invoice, customer_event).
 	 */
 	readonly isSimulation?: boolean
+
+	/**
+	 * Origen explícito de la sincronización: 'MANUAL' (por defecto) o 'SCHEDULED'.
+	 */
+	readonly triggerType?: SyncTriggerType
 }
 
 /**

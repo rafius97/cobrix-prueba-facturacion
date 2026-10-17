@@ -19,6 +19,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { formatDateTime, formatUsd } from '../lib/utils'
 import type { DashboardResponseDto } from '../../shared/api-types'
 
+function formatAutoRunDate(dateStr: string): string {
+	const parts = dateStr.split('-')
+	if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+		return `${parts[2]}/${parts[1]}/${parts[0]}`
+	}
+	return dateStr
+}
+
 export function DashboardPage(): React.JSX.Element {
 	const [data, setData] = React.useState<DashboardResponseDto | null>(null)
 	const [isLoading, setIsLoading] = React.useState<boolean>(true)
@@ -289,6 +297,33 @@ export function DashboardPage(): React.JSX.Element {
 								<span className="text-slate-500 font-medium">Corrida Diaria</span>
 								<span className="font-medium text-slate-700">
 									{company.autoRunActive ? `Activa (${company.autoRunHour})` : 'Inactiva'}
+								</span>
+							</div>
+							<div className="flex items-center justify-between">
+								<span className="text-slate-500 font-medium">Última ejecución</span>
+								<span className="font-medium text-slate-700">
+									{company.lastAutoRunDate !== null && company.lastAutoRunStatus !== null ? (
+										<span>
+											{formatAutoRunDate(company.lastAutoRunDate)} ·{' '}
+											<span
+												className={
+													company.lastAutoRunStatus === 'COMPLETED'
+														? 'text-emerald-600 font-semibold'
+														: company.lastAutoRunStatus === 'FAILED'
+															? 'text-red-600 font-semibold'
+															: 'text-amber-600 font-semibold'
+												}
+											>
+												{company.lastAutoRunStatus === 'COMPLETED'
+													? 'Completada'
+													: company.lastAutoRunStatus === 'FAILED'
+														? 'Fallida'
+														: 'En ejecución'}
+											</span>
+										</span>
+									) : (
+										<span className="text-slate-400">Nunca ejecutada</span>
+									)}
 								</span>
 							</div>
 						</div>

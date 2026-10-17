@@ -62,6 +62,8 @@ describe('Servidor HTTP: API REST y entrega de estáticos', () => {
 		assert.ok(typeof data.company.companyName === 'string')
 		const companyObj: object = data.company
 		assert.ok(!('apiPassword' in companyObj), 'No debe exponerse apiPassword')
+		assert.ok('lastAutoRunDate' in companyObj, 'Debe incluir lastAutoRunDate')
+		assert.ok('lastAutoRunStatus' in companyObj, 'Debe incluir lastAutoRunStatus')
 	})
 
 	it('POST /api/dashboard rechaza métodos no permitidos con código 405', async () => {

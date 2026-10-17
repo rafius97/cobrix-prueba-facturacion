@@ -9,6 +9,7 @@ import type { DatabaseSync } from 'node:sqlite'
 
 import { BillingApiClient } from '../../cobrix/client/billing-api-client.ts'
 import { configRepository } from '../../cobrix/db/repositories.ts'
+import type { SyncTriggerType } from '../../cobrix/db/types.ts'
 import { HistoryService } from '../../cobrix/history/history-service.ts'
 import type { TypedImportSyncRun, TypedPaymentSyncRun, TypedSyncRun } from '../../cobrix/history/types.ts'
 import { ImportService } from '../../cobrix/sync/import-service.ts'
@@ -117,6 +118,7 @@ export function mapTypedSyncRunToItemDto(run: TypedSyncRun): SyncRunItemDto {
 		return {
 			id: run.id,
 			type: run.type,
+			triggerType: run.triggerType,
 			isSimulation: run.isSimulation,
 			status: run.status,
 			startedAt: run.startedAt,
@@ -129,6 +131,7 @@ export function mapTypedSyncRunToItemDto(run: TypedSyncRun): SyncRunItemDto {
 	return {
 		id: run.id,
 		type: run.type,
+		triggerType: run.triggerType,
 		isSimulation: run.isSimulation,
 		status: run.status,
 		startedAt: run.startedAt,
@@ -145,6 +148,7 @@ export function mapTypedSyncRunToItemDto(run: TypedSyncRun): SyncRunItemDto {
 export interface ExecuteSyncOptions {
 	readonly isSimulation?: boolean
 	readonly billingClient?: BillingApiClient
+	readonly triggerType?: SyncTriggerType
 }
 
 /**
@@ -162,6 +166,38 @@ function resolveBillingClient(db: DatabaseSync, customClient?: BillingApiClient)
 	})
 }
 
+async function runImport(
+	db: DatabaseSync,
+	client: BillingApiClient,
+	isSimulation: boolean,
+	triggerType: SyncTriggerType = 'MANUAL',
+): Promise<SyncRunItemDto> {
+	const service = new ImportService(db, client)
+	const result = await service.run({ isSimulation, triggerType })
+	const historyService = new HistoryService(db)
+	const savedRun = historyService.getRunById(result.runId)
+	if (savedRun === null) {
+		throw new Error(`Failed to retrieve recorded sync run: ${result.runId}`)
+	}
+	return mapTypedSyncRunToItemDto(savedRun)
+}
+
+async function runPayment(
+	db: DatabaseSync,
+	client: BillingApiClient,
+	isSimulation: boolean,
+	triggerType: SyncTriggerType = 'MANUAL',
+): Promise<SyncRunItemDto> {
+	const service = new PaymentSyncService(db, client)
+	const result = await service.run({ isSimulation, triggerType })
+	const historyService = new HistoryService(db)
+	const savedRun = historyService.getRunById(result.runId)
+	if (savedRun === null) {
+		throw new Error(`Failed to retrieve recorded sync run: ${result.runId}`)
+	}
+	return mapTypedSyncRunToItemDto(savedRun)
+}
+
 /**
  * Ejecuta una corrida de importación de cuotas (o su simulación) bajo exclusión mutua.
  */
@@ -172,17 +208,7 @@ export async function executeImportSync(
 	acquireSyncLock()
 	try {
 		const client = resolveBillingClient(db, options.billingClient)
-		const service = new ImportService(db, client)
-		const isSimulation = options.isSimulation ?? false
-		const result = await service.run({ isSimulation })
-
-		const historyService = new HistoryService(db)
-		const savedRun = historyService.getRunById(result.runId)
-		if (savedRun === null) {
-			throw new Error(`Failed to retrieve recorded sync run: ${result.runId}`)
-		}
-
-		return mapTypedSyncRunToItemDto(savedRun)
+		return await runImport(db, client, options.isSimulation ?? false, options.triggerType ?? 'MANUAL')
 	} finally {
 		releaseSyncLock()
 	}
@@ -198,17 +224,40 @@ export async function executePaymentSync(
 	acquireSyncLock()
 	try {
 		const client = resolveBillingClient(db, options.billingClient)
-		const service = new PaymentSyncService(db, client)
-		const isSimulation = options.isSimulation ?? false
-		const result = await service.run({ isSimulation })
+		return await runPayment(db, client, options.isSimulation ?? false, options.triggerType ?? 'MANUAL')
+	} finally {
+		releaseSyncLock()
+	}
+}
 
-		const historyService = new HistoryService(db)
-		const savedRun = historyService.getRunById(result.runId)
-		if (savedRun === null) {
-			throw new Error(`Failed to retrieve recorded sync run: ${result.runId}`)
+/**
+ * Ejecuta el ciclo completo de sincronización automática (importación y posterior conciliación de pagos)
+ * manteniendo el cerrojo de sincronización activo durante toda la secuencia para evitar que una
+ * sincronización manual se interponga entre ambas fases.
+ */
+export async function executeScheduledFullSync(
+	db: DatabaseSync,
+	options: ExecuteSyncOptions = {},
+): Promise<{ readonly importRun: SyncRunItemDto; readonly paymentRun: SyncRunItemDto | null }> {
+	acquireSyncLock()
+	try {
+		const client = resolveBillingClient(db, options.billingClient)
+		const isSimulation = options.isSimulation ?? false
+		const triggerType: SyncTriggerType = options.triggerType ?? 'SCHEDULED'
+
+		const importRun = await runImport(db, client, isSimulation, triggerType)
+		if (triggerType === 'SCHEDULED' && importRun.status === 'COMPLETED') {
+			console.log('[scheduler] Scheduled import completed')
+		}
+		if (importRun.status === 'FAILED') {
+			return { importRun, paymentRun: null }
 		}
 
-		return mapTypedSyncRunToItemDto(savedRun)
+		const paymentRun = await runPayment(db, client, isSimulation, triggerType)
+		if (triggerType === 'SCHEDULED' && paymentRun.status === 'COMPLETED') {
+			console.log('[scheduler] Scheduled payment update completed')
+		}
+		return { importRun, paymentRun }
 	} finally {
 		releaseSyncLock()
 	}

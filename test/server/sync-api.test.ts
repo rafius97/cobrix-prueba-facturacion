@@ -75,6 +75,7 @@ function parseSyncRunItem(val: JsonValue): SyncRunItemDto {
 
 	const rawType = val['type']
 	const type = rawType === 'PAYMENT_UPDATE' ? 'PAYMENT_UPDATE' : 'IMPORT'
+	const triggerType = val['triggerType'] === 'SCHEDULED' ? 'SCHEDULED' : 'MANUAL'
 	const status = val['status'] === 'FAILED' ? 'FAILED' : 'COMPLETED'
 	const rawSummary = val['summary']
 
@@ -126,6 +127,7 @@ function parseSyncRunItem(val: JsonValue): SyncRunItemDto {
 	return {
 		id: typeof val['id'] === 'string' ? val['id'] : '',
 		type,
+		triggerType,
 		isSimulation: val['isSimulation'] === true,
 		status,
 		startedAt: typeof val['startedAt'] === 'string' ? val['startedAt'] : '',
@@ -374,12 +376,14 @@ describe('API REST: Sincronización e Historial (/api/sync/*)', () => {
 		// Primera debe ser RUN-002 (más reciente)
 		assert.equal(dto.runs[0]?.id, 'RUN-002')
 		assert.equal(dto.runs[0]?.type, 'PAYMENT_UPDATE')
+		assert.equal(dto.runs[0]?.triggerType, 'MANUAL')
 		assert.equal(dto.runs[0]?.isSimulation, true)
 		assert.equal(dto.runs[0]?.summary?.type, 'PAYMENT_UPDATE')
 
 		// Segunda debe ser RUN-001
 		assert.equal(dto.runs[1]?.id, 'RUN-001')
 		assert.equal(dto.runs[1]?.type, 'IMPORT')
+		assert.equal(dto.runs[1]?.triggerType, 'MANUAL')
 		assert.equal(dto.runs[1]?.isSimulation, false)
 		assert.equal(dto.runs[1]?.summary?.type, 'IMPORT')
 	})
@@ -415,6 +419,7 @@ describe('API REST: Sincronización e Historial (/api/sync/*)', () => {
 
 		assert.equal(detail.run.id, 'RUN-001')
 		assert.equal(detail.run.type, 'IMPORT')
+		assert.equal(detail.run.triggerType, 'MANUAL')
 		assert.equal(detail.details.length, 2)
 		assert.equal(detail.details[0]?.debtId, 'DEBT-801')
 		assert.equal(detail.details[0]?.result, 'IMPORTED')
@@ -446,6 +451,7 @@ describe('API REST: Sincronización e Historial (/api/sync/*)', () => {
 		const runItem = parseSyncRunItem(json)
 
 		assert.equal(runItem.type, 'IMPORT')
+		assert.equal(runItem.triggerType, 'MANUAL')
 		assert.equal(runItem.isSimulation, false)
 		assert.equal(runItem.status, 'COMPLETED')
 		assert.ok(runItem.id.length > 0)
@@ -465,6 +471,7 @@ describe('API REST: Sincronización e Historial (/api/sync/*)', () => {
 		const runItem = parseSyncRunItem(json)
 
 		assert.equal(runItem.type, 'IMPORT')
+		assert.equal(runItem.triggerType, 'MANUAL')
 		assert.equal(runItem.isSimulation, true)
 		assert.equal(runItem.status, 'COMPLETED')
 	})
@@ -482,6 +489,7 @@ describe('API REST: Sincronización e Historial (/api/sync/*)', () => {
 		const runItem = parseSyncRunItem(json)
 
 		assert.equal(runItem.type, 'PAYMENT_UPDATE')
+		assert.equal(runItem.triggerType, 'MANUAL')
 		assert.equal(runItem.isSimulation, false)
 		assert.equal(runItem.status, 'COMPLETED')
 		assert.equal(runItem.summary?.type, 'PAYMENT_UPDATE')
@@ -500,6 +508,7 @@ describe('API REST: Sincronización e Historial (/api/sync/*)', () => {
 		const runItem = parseSyncRunItem(json)
 
 		assert.equal(runItem.type, 'PAYMENT_UPDATE')
+		assert.equal(runItem.triggerType, 'MANUAL')
 		assert.equal(runItem.isSimulation, true)
 		assert.equal(runItem.status, 'COMPLETED')
 	})

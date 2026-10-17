@@ -74,6 +74,7 @@ const validPaymentSummary: PaymentSyncSummary = {
 const validImportSyncRun: SyncRun = {
 	id: 'import-run-001',
 	type: 'IMPORT',
+	triggerType: 'MANUAL',
 	isSimulation: false,
 	status: 'COMPLETED',
 	startedAt: '2026-10-13T10:00:00.000Z',
@@ -85,6 +86,7 @@ const validImportSyncRun: SyncRun = {
 const validPaymentSyncRun: SyncRun = {
 	id: 'payment-run-001',
 	type: 'PAYMENT_UPDATE',
+	triggerType: 'MANUAL',
 	isSimulation: true,
 	status: 'COMPLETED',
 	startedAt: '2026-10-13T11:00:00.000Z',
