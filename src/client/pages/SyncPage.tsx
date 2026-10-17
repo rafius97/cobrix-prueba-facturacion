@@ -23,7 +23,7 @@ import {
 	XCircle,
 } from 'lucide-react'
 
-import { Badge } from '../components/ui/badge'
+import { Badge, ExecutionModeBadge } from '../components/ui/badge'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import {
@@ -519,21 +519,7 @@ export function SyncPage(): React.JSX.Element {
 
 												{/* 2. Modalidad */}
 												<td className="py-3.5 px-4">
-													{run.isSimulation ? (
-														<Badge
-															variant="warn"
-															className="bg-amber-100 text-amber-800 border-amber-200"
-														>
-															Simulación
-														</Badge>
-													) : (
-														<Badge
-															variant="secondary"
-															className="bg-slate-100 text-slate-700"
-														>
-															Real
-														</Badge>
-													)}
+													<ExecutionModeBadge isSimulation={run.isSimulation} />
 												</td>
 
 												{/* 3. Origen */}

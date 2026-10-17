@@ -13,7 +13,7 @@ import {
 	Users,
 } from 'lucide-react'
 
-import { Badge } from '../components/ui/badge'
+import { Badge, ExecutionModeBadge } from '../components/ui/badge'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { formatDateTime, formatUsd } from '../lib/utils'
@@ -221,9 +221,7 @@ export function DashboardPage(): React.JSX.Element {
 														{isImport ? 'Importación' : 'Conciliación de Pagos'}
 													</td>
 													<td className="py-3">
-														<Badge variant={run.isSimulation ? 'secondary' : 'default'}>
-															{run.isSimulation ? 'Simulación' : 'Real'}
-														</Badge>
+														<ExecutionModeBadge isSimulation={run.isSimulation} />
 													</td>
 													<td className="py-3">
 														<Badge variant={run.status === 'COMPLETED' ? 'success' : 'destructive'}>
